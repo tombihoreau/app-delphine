@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Build outputs
+dist/
+build/
+coverage/
+frontend/dist/
+backend/dist/
+
+# Local databases and generated data
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+backend/uploads/
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime and cache files
+.cache/
+.vite/
+.turbo/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Mobile / Capacitor generated projects
+frontend/android/
+frontend/ios/
+android/
+ios/
+
+# Test artifacts
+playwright-report/
+test-results/
+

@@ -1,0 +1,33 @@
+:root {
+  /* Official brand palette */
+  --brand-brown: #390600;
+  --brand-tamarillo: #7b2c65;
+  --brand-purple: #7b2c65;
+  --brand-peach: #ffc69f;
+  --brand-beige: #fff4ec;
+
+  /* RGB variants for Tailwind alpha support */
+  --brand-brown-rgb: 57 6 0;
+  --brand-tamarillo-rgb: 123 44 101;
+  --brand-purple-rgb: 123 44 101;
+  --brand-peach-rgb: 255 198 159;
+  --brand-beige-rgb: 255 244 236;
+
+  /* Current app semantic tokens */
+  --color-app-bg: #ffffff;
+  --color-app-card: #ffffff;
+  --color-app-ink: #161616;
+  --color-app-mist: #f3f3f1;
+  --color-app-line: #d7d7d2;
+  --color-app-muted: #6f6f69;
+  --color-app-success: #3b7a57;
+  --color-app-danger: #b04747;
+  --color-app-shell: #d5d5d5;
+  --color-app-primary: #1f1f1f;
+
+  /* Semantic brand aliases for later redesign steps */
+  --color-brand-primary: var(--brand-brown);
+  --color-brand-accent: var(--brand-tamarillo);
+  --color-brand-soft: var(--brand-peach);
+  --color-brand-surface: var(--brand-beige);
+}

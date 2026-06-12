@@ -1,0 +1,15 @@
+{
+  "name": "sport-coach-app",
+  "version": "1.0.0",
+  "engines": {
+    "node": "20.20.2"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

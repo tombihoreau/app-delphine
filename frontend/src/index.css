@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color: var(--color-app-ink);
+    background: var(--color-app-bg);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  body {
+    @apply bg-white text-ink antialiased;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .app-screen {
+    @apply min-h-screen bg-white px-4 pb-28 pt-8;
+  }
+
+  .client-screen {
+    @apply min-h-screen bg-brand-beige px-5 pb-44 pt-8 text-brand-brown;
+  }
+
+  .app-frame {
+    @apply mx-auto max-w-md;
+  }
+
+  .client-frame {
+    @apply mx-auto max-w-md;
+  }
+
+  .client-title {
+    @apply font-display text-3xl font-normal leading-tight text-brand-tamarillo;
+  }
+
+  .client-card {
+    @apply rounded-md border border-brand-tamarillo/30 bg-brand-beige;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-kicker {
+    @apply mb-3 text-sm font-medium tracking-[-0.02em] text-muted;
+  }
+
+  .page-panel {
+    @apply bg-transparent px-0 pb-7 pt-0 shadow-none;
+  }
+
+  .page-title {
+    @apply text-[2rem] font-extrabold leading-none tracking-[-0.05em] text-ink;
+  }
+
+  .page-subtitle {
+    @apply mt-3 text-sm leading-6 text-muted;
+  }
+
+  .surface-card {
+    @apply rounded-[20px] border border-line bg-card shadow-sm;
+  }
+
+  .surface-card-dark {
+    @apply rounded-[20px] border border-[#2b2b2b] bg-[#171717] text-white shadow-float;
+  }
+
+  .field-input {
+    @apply w-full rounded-[16px] border border-line bg-[#fafaf8] px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink;
+  }
+
+  .field-area {
+    @apply field-input min-h-[120px] resize-none;
+  }
+
+  .pill-button {
+    @apply inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-medium text-white transition hover:opacity-90;
+  }
+
+  .pill-button-light {
+    @apply inline-flex items-center justify-center rounded-full border border-line bg-white px-5 py-3 text-sm font-medium text-ink transition hover:bg-mist;
+  }
+
+  .chip-button {
+    @apply inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-medium text-ink transition hover:bg-mist;
+  }
+
+  .chip-button-muted {
+    @apply inline-flex items-center justify-center rounded-full bg-[#8f8f8f] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90;
+  }
+
+  .status-banner {
+    @apply mb-4 rounded-[18px] px-4 py-3 text-sm font-medium;
+  }
+
+  .bottom-nav-shell {
+    @apply fixed bottom-0 left-0 right-0 z-50 w-full border-t border-[#d0d0cb] bg-[#ececea] px-4 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-3 shadow-none;
+  }
+
+  .bottom-nav-shell-client {
+    @apply border-transparent bg-transparent px-5 pb-[calc(env(safe-area-inset-bottom)+1.6rem)] pt-0 text-brand-brown;
+  }
+
+  .bottom-nav-inner {
+    @apply flex items-start justify-between gap-2;
+  }
+
+  .bottom-nav-inner-client {
+    @apply mx-auto h-[96px] max-w-md rounded-full bg-brand-beige px-6 py-4 shadow-[0_16px_36px_rgba(57,6,0,0.12)];
+  }
+
+  .nav-link {
+    @apply flex min-w-[86px] flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium text-ink transition;
+  }
+
+  .nav-link-active {
+    @apply bg-ink text-white;
+  }
+
+  .bottom-nav-shell-client .nav-link {
+    @apply min-w-0 flex-1 rounded-none px-1 py-0 text-[0.88rem] font-normal leading-none text-brand-brown;
+  }
+
+  .bottom-nav-shell-client .nav-link svg {
+    @apply h-6 w-6;
+  }
+
+  .bottom-nav-shell-client .nav-link-active {
+    @apply bg-transparent text-brand-tamarillo;
+  }
+
+  .bottom-nav-shell-client .nav-link-active::after {
+    content: "";
+    @apply mt-2 h-2 w-2 rounded-full bg-brand-tamarillo;
+  }
+
+  .metric-card {
+    @apply rounded-[22px] border border-line bg-white p-4 shadow-sm;
+  }
+}
