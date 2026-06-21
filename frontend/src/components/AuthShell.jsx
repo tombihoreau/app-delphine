@@ -3,8 +3,8 @@ import authWaveBottom from '../assets/brand/auth-wave-bottom.svg'
 import authWaveTop from '../assets/brand/auth-wave-top.svg'
 
 const AuthShell = ({ title, subtitle, children, compact = false }) => (
-  <div className="min-h-screen bg-[#dedede] px-0 sm:px-4 sm:py-6">
-    <main className="relative mx-auto flex min-h-screen w-full max-w-md overflow-hidden bg-brand-beige px-5 text-brand-brown sm:min-h-[calc(100vh-3rem)] sm:rounded-[18px]">
+  <div className="min-h-screen bg-[#dedede] px-0 sm:px-4 sm:py-6 lg:px-10">
+    <main className="relative mx-auto flex min-h-screen w-full max-w-md overflow-hidden bg-brand-beige px-5 text-brand-brown sm:min-h-[calc(100vh-3rem)] sm:rounded-[18px] lg:max-w-5xl lg:px-14">
       <img
         src={authWaveTop}
         alt=""
@@ -19,7 +19,7 @@ const AuthShell = ({ title, subtitle, children, compact = false }) => (
       />
 
       <section
-        className={`relative z-10 mx-auto flex w-full max-w-[345px] flex-col items-center text-center ${
+        className={`relative z-10 mx-auto flex w-full max-w-[345px] flex-col items-center text-center lg:max-w-[420px] ${
           compact ? 'justify-center py-20' : 'justify-center py-24'
         }`}
       >

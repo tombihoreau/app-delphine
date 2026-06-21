@@ -1,50 +1,132 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import api from '../services/api'
-import MoodSmiley from '../components/MoodSmiley'
 import SunIcon from '../components/SunIcon'
-import BackButton from '../components/BackButton'
+import SessionDetailView from '../components/SessionDetailView'
 
-const ClockIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <circle cx="12" cy="12" r="8" />
-    <path d="M12 8v5l3 2" />
-  </svg>
+const formatDateKey = (date) => {
+  const current = new Date(date)
+  const year = current.getFullYear()
+  const month = String(current.getMonth() + 1).padStart(2, '0')
+  const day = String(current.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const SliderQuestion = ({ title, subtitle, labels, value, onChange }) => (
+  <section className="mb-10">
+    <h2 className="text-lg font-medium text-brand-brown">{title}</h2>
+    <p className="mt-1 text-xs italic text-brand-brown/80">{subtitle}</p>
+    <div className="mt-8">
+      <div className="relative h-5">
+        <div className="absolute left-2 right-2 top-1/2 h-1 -translate-y-1/2 rounded-full bg-brand-peach" />
+        <div className="relative flex justify-between">
+          {[1, 2, 3, 4, 5].map((step) => (
+            <button
+              key={step}
+              type="button"
+              onClick={() => onChange(step)}
+              className={`h-5 w-5 rounded-full bg-brand-peach ${
+                step === value ? 'border-4 border-brand-tamarillo' : 'border-0'
+              }`}
+              aria-label={`${title} ${step}`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-5 gap-2 text-center text-[0.62rem] text-brand-brown">
+        {labels.map((label) => <span key={label}>{label}</span>)}
+      </div>
+    </div>
+  </section>
 )
 
-const CalendarIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="4" y="5" width="16" height="15" rx="3" />
-    <path d="M8 3v4M16 3v4M4 10h16" />
-  </svg>
+const CompletionScreen = ({ onContinue }) => (
+  <div className="client-screen">
+    <div className="client-frame flex min-h-[calc(100vh-4rem)] flex-col">
+      <main className="flex flex-1 flex-col items-center justify-center pb-28 text-center">
+        <h1 className="font-display text-3xl font-normal leading-tight text-brand-tamarillo">
+          Félicitations !<br />Séance terminé
+        </h1>
+        <p className="mt-3 text-sm italic text-brand-brown">Ajoute ton ressenti durant la séance</p>
+        <div className="mt-16 text-8xl" aria-hidden="true">🔥</div>
+      </main>
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+        <div className="mx-auto max-w-md">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full rounded-full bg-brand-tamarillo px-6 py-4 text-base font-bold text-brand-beige"
+          >
+            Ajouter mon ressenti
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 )
 
-const formatPrettyDate = (value) => value?.split('-').reverse().join('/')
-
-const fallbackSteps = [
-  {
-    name: 'Échauffement rapide',
-    duration: 5,
-    description: "Marche rapide, quelques rotations d'épaules et de chevilles, respirations profondes."
-  },
-  {
-    name: 'Corps de séance',
-    duration: 25,
-    description: "Marche rapide, quelques rotations d'épaules et de chevilles, respirations profondes."
-  },
-  {
-    name: 'Récupération',
-    duration: 5,
-    description: "Marche rapide, quelques rotations d'épaules et de chevilles, respirations profondes."
-  }
-]
+const FeedbackForm = ({ assignment, error, saving, feedback, setFeedback, onSubmit }) => (
+  <div className="client-screen">
+    <div className="client-frame flex min-h-[calc(100vh-4rem)] flex-col">
+      <main className="flex-1 pb-40">
+        {error ? <p className="mb-4 rounded-md border border-brand-tamarillo bg-brand-peach/30 px-4 py-3 text-sm text-brand-tamarillo">{error}</p> : null}
+        <h1 className="mb-9 flex items-center gap-2 font-display text-3xl font-normal text-brand-tamarillo">
+          <SunIcon className="h-8 w-8" />
+          Ressenti rapide
+        </h1>
+        <SliderQuestion
+          title="Effort ressenti"
+          subtitle="Sélectionne ton niveau d'effort durant la séance réalisée"
+          labels={['Très facile', 'Facile', 'Modéré', 'Difficile', 'Effort maximal']}
+          value={feedback.difficulty}
+          onChange={(difficulty) => setFeedback({ ...feedback, difficulty })}
+        />
+        <section className="mb-8">
+          <label className="mb-3 block text-lg font-medium text-brand-brown">As-tu ressenti des douleurs ?</label>
+          <textarea
+            value={feedback.pain_notes}
+            onChange={(event) => setFeedback({ ...feedback, pain_notes: event.target.value })}
+            placeholder="Ajouter un commentaire"
+            className="min-h-[100px] w-full rounded-md border border-brand-brown/35 bg-transparent px-4 py-4 text-sm text-brand-brown placeholder:text-brand-brown/35 outline-none focus:border-brand-tamarillo"
+          />
+        </section>
+        <section>
+          <label className="mb-3 block text-lg font-medium text-brand-brown">Un commentaire ?</label>
+          <textarea
+            value={feedback.comments}
+            onChange={(event) => setFeedback({ ...feedback, comments: event.target.value })}
+            placeholder="Besoin, aide ..."
+            className="min-h-[100px] w-full rounded-md border border-brand-brown/35 bg-transparent px-4 py-4 text-sm text-brand-brown placeholder:text-brand-brown/35 outline-none focus:border-brand-tamarillo"
+          />
+        </section>
+      </main>
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+        <div className="mx-auto max-w-md">
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={saving}
+            className="w-full rounded-full bg-brand-tamarillo px-6 py-4 text-base font-bold text-brand-beige disabled:opacity-60"
+          >
+            {saving ? 'Envoi...' : 'Envoyer mon retour'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)
 
 const ClientSessionPage = () => {
   const { id } = useParams()
-  const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [screen, setScreen] = useState('detail')
+  const [feedback, setFeedback] = useState({
+    difficulty: 4,
+    pain_notes: '',
+    comments: ''
+  })
 
   useEffect(() => {
     loadSession()
@@ -59,106 +141,92 @@ const ClientSessionPage = () => {
     }
   }
 
-  const completeSession = async () => {
+  const assignment = detail?.assignment
+  const completed = Boolean(assignment?.feedback_id)
+  const isFuture = assignment ? assignment.scheduled_date > formatDateKey(new Date()) : false
+  const steps = useMemo(() => {
+    if (!assignment) return []
+
+    return detail?.steps?.length
+      ? detail.steps.map((step) => ({
+          ...step,
+          duration: step.duration_minutes || 0
+        }))
+      : []
+  }, [assignment, detail])
+
+  const submitFeedback = async () => {
     setSaving(true)
     setError('')
     try {
       await api.post(`/api/client/sessions/${id}/complete`, {
-        difficulty: 2,
-        fatigue: 2,
-        pain: 1,
-        comments: 'Séance validée depuis l’espace client'
+        difficulty: feedback.difficulty,
+        pain_notes: feedback.pain_notes,
+        comments: feedback.comments,
+        duration_minutes: assignment?.session_minutes || 0
       })
-      navigate('/progres')
+      await loadSession()
+      setScreen('detail')
     } catch (err) {
-      setError('Impossible de valider la séance')
+      setError('Impossible d’envoyer ton retour')
     } finally {
       setSaving(false)
     }
   }
 
-  const assignment = detail?.assignment
-  const steps = detail?.steps?.length ? detail.steps.map((step, index) => ({
-    ...step,
-    duration: index === 0 || index === detail.steps.length - 1 ? 5 : Math.max(10, (assignment?.session_minutes || 35) - 10)
-  })) : fallbackSteps
+  if (screen === 'complete') {
+    return <CompletionScreen onContinue={() => setScreen('feedback')} />
+  }
+
+  if (screen === 'feedback') {
+    return (
+      <FeedbackForm
+        assignment={assignment}
+        error={error}
+        saving={saving}
+        feedback={feedback}
+        setFeedback={setFeedback}
+        onSubmit={submitFeedback}
+      />
+    )
+  }
+
+  const hasFixedAction = assignment && !completed
 
   return (
-    <div className="client-screen">
-      <div className="client-frame flex min-h-[calc(100vh-4rem)] flex-col">
-        <main className="flex-1 pb-40">
-          {error && <p className="mb-4 rounded-md border border-brand-tamarillo bg-brand-peach/30 px-4 py-3 text-sm text-brand-tamarillo">{error}</p>}
-
-          {!assignment ? (
-            <>
-              <BackButton className="mb-7" />
-              <p className="text-brand-tamarillo">Chargement...</p>
-            </>
-          ) : (
-            <>
-              <BackButton className="mb-7" />
-              <header className="mb-10">
-                <h1 className="font-display text-3xl font-normal leading-tight text-brand-tamarillo">{assignment.program_name}</h1>
-                <div className="mt-3 flex flex-wrap gap-3 text-sm text-brand-tamarillo">
-                  <span className="inline-flex items-center gap-1"><CalendarIcon />{formatPrettyDate(assignment.scheduled_date)}</span>
-                  <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
-                </div>
-                <span className="mt-3 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-sm text-brand-tamarillo">
-                  Course à pied
-                </span>
-              </header>
-
-              <section className="mb-9">
-                <h2 className="mb-5 flex items-center gap-3 text-xl font-medium text-brand-brown">
-                  <SunIcon className="h-8 w-8" />
-                  Le programme de la séance
-                </h2>
-
-                <div className="space-y-6">
-                  {steps.map((step) => (
-                    <article key={step.id || step.name}>
-                      <div className="mb-2 flex items-end justify-between gap-4 border-b border-brand-tamarillo/35 pb-1 text-brand-tamarillo">
-                        <h3 className="text-base italic">{step.name}</h3>
-                        <span className="shrink-0 text-sm">• {step.duration} min</span>
-                      </div>
-                      <p className="text-base leading-6 text-brand-brown">
-                        {step.description || "Marche rapide, quelques rotations d'épaules et de chevilles, respirations profondes."}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section className="rounded-md bg-brand-peach/35 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="font-display text-xl font-normal text-brand-tamarillo">Mes petits conseils</h2>
-                    <p className="mt-2 text-sm leading-5 text-brand-brown">
-                      {assignment.coach_notes || "Écoute ton corps. Si tu as besoin de marcher, marche, c'est une force, pas un échec."}
-                    </p>
-                  </div>
-                  <MoodSmiley value={5} alt="" className="h-14 w-14 shrink-0" />
-                </div>
-              </section>
-            </>
-          )}
-        </main>
-
-        {assignment ? (
+    <div className={`client-screen ${hasFixedAction ? '' : '!pb-10'}`}>
+      <SessionDetailView
+        assignment={assignment}
+        steps={steps}
+        completed={completed}
+        error={error}
+        mainClassName={hasFixedAction ? 'pb-40' : 'pb-4'}
+        fixedAction={assignment && !completed ? (
           <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
             <div className="mx-auto max-w-md">
               <button
                 type="button"
-                onClick={completeSession}
-                disabled={saving || assignment.feedback_id}
-                className="w-full rounded-full bg-brand-tamarillo px-6 py-4 text-base font-bold text-brand-beige disabled:opacity-60"
+                onClick={() => setScreen('complete')}
+                disabled={saving || isFuture}
+                aria-describedby={isFuture ? 'future-session-help' : undefined}
+                title={isFuture ? 'La séance pourra être validée le jour prévu.' : undefined}
+                className={`w-full rounded-full px-6 py-4 text-base font-bold ${
+                  isFuture
+                    ? 'bg-[#e6dce4] text-brand-brown/45'
+                    : 'bg-brand-tamarillo text-brand-beige'
+                } disabled:cursor-not-allowed`}
               >
-                {assignment.feedback_id ? 'Séance validée' : saving ? 'Validation...' : 'Valider la séance'}
+                Valider la séance
               </button>
+              {isFuture ? (
+                <p id="future-session-help" className="sr-only">
+                  La séance pourra être validée le jour prévu.
+                </p>
+              ) : null}
             </div>
           </div>
         ) : null}
-      </div>
+      />
     </div>
   )
 }

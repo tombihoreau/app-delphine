@@ -156,4 +156,30 @@
   .metric-card {
     @apply rounded-[22px] border border-line bg-white p-4 shadow-sm;
   }
+
+  @media (min-width: 900px) {
+    .client-screen {
+      padding: 3rem clamp(2rem, 6vw, 5rem) 7rem;
+      background: rgb(var(--brand-beige-rgb));
+    }
+
+    .client-frame {
+      width: 100%;
+      max-width: 1280px;
+      min-height: auto;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .bottom-nav-shell-client {
+      pointer-events: none;
+    }
+
+    .bottom-nav-inner-client {
+      pointer-events: auto;
+      max-width: 560px;
+    }
+  }
 }

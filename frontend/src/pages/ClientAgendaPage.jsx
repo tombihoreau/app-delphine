@@ -18,13 +18,6 @@ const ClockIcon = () => (
   </svg>
 )
 
-const HomePin = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M5 10.5 12 5l7 5.5V19H5z" />
-    <path d="M9.5 19v-5h5v5" />
-  </svg>
-)
-
 const getMonthLabel = (date) =>
   date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 
@@ -163,13 +156,12 @@ const ClientAgendaPage = () => {
                 >
                   <div>
                     <h3 className="text-lg font-medium text-brand-tamarillo">{assignment.program_name}</h3>
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
-                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
-                      <span className="inline-flex items-center gap-1"><HomePin />{assignment.program_location || 'Domicile'}</span>
-                    </div>
-                    <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
-                      Course à pied
-                    </span>
+	                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
+	                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
+	                    </div>
+	                    <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
+	                      {assignment.program_category}
+	                    </span>
                   </div>
                   <span className="mt-2 shrink-0 text-brand-tamarillo"><Chevron direction="right" /></span>
                 </button>

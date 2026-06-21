@@ -6,14 +6,19 @@ import AdminPage from './pages/AdminPage'
 import SetPasswordPage from './pages/SetPasswordPage'
 import CoachProgramsPage from './pages/CoachProgramsPage'
 import CoachProgramCreatePage from './pages/CoachProgramCreatePage'
+import CoachProgramEditPage from './pages/CoachProgramEditPage'
+import CoachProgramDetailPage from './pages/CoachProgramDetailPage'
 import CoachClientsPage from './pages/CoachClientsPage'
 import CoachCalendarPage from './pages/CoachCalendarPage'
 import CoachClientCreatePage from './pages/CoachClientCreatePage'
+import CoachClientEditPage from './pages/CoachClientEditPage'
 import CoachClientDetailPage from './pages/CoachClientDetailPage'
 import CoachAssignSessionPage from './pages/CoachAssignSessionPage'
 import CoachProgramAssignPage from './pages/CoachProgramAssignPage'
+import CoachSessionPage from './pages/CoachSessionPage'
 import ClientAgendaPage from './pages/ClientAgendaPage'
 import ClientProgressPage from './pages/ClientProgressPage'
+import ClientProfileEditPage from './pages/ClientProfileEditPage'
 import ClientMoodPage from './pages/ClientMoodPage'
 import ClientDailyStatePage from './pages/ClientDailyStatePage'
 import ClientSessionPage from './pages/ClientSessionPage'
@@ -69,6 +74,7 @@ function App() {
         <Route path="/" element={<ClientRoute><DashboardPage /></ClientRoute>} />
         <Route path="/agenda" element={<ClientRoute><ClientAgendaPage /></ClientRoute>} />
         <Route path="/progres" element={<ClientRoute><ClientProgressPage /></ClientRoute>} />
+        <Route path="/profile/edit" element={<ClientRoute><ClientProfileEditPage /></ClientRoute>} />
         <Route path="/mood" element={<ClientRoute><ClientMoodPage /></ClientRoute>} />
         <Route path="/mood/details" element={<ClientRoute><ClientDailyStatePage /></ClientRoute>} />
         <Route path="/sessions/:id" element={<ClientRoute><ClientSessionPage /></ClientRoute>} />
@@ -76,12 +82,16 @@ function App() {
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
         <Route path="/admin/programs" element={<AdminRoute><CoachProgramsPage /></AdminRoute>} />
         <Route path="/admin/programs/new" element={<AdminRoute><CoachProgramCreatePage /></AdminRoute>} />
+        <Route path="/admin/programs/:programId/edit" element={<AdminRoute><CoachProgramEditPage /></AdminRoute>} />
         <Route path="/admin/programs/:programId/assign" element={<AdminRoute><CoachProgramAssignPage /></AdminRoute>} />
+        <Route path="/admin/programs/:programId" element={<AdminRoute><CoachProgramDetailPage /></AdminRoute>} />
         <Route path="/admin/clients" element={<AdminRoute><CoachClientsPage /></AdminRoute>} />
         <Route path="/admin/clients/new" element={<AdminRoute><CoachClientCreatePage /></AdminRoute>} />
+        <Route path="/admin/clients/:id/edit" element={<AdminRoute><CoachClientEditPage /></AdminRoute>} />
         <Route path="/admin/clients/:id" element={<AdminRoute><CoachClientDetailPage /></AdminRoute>} />
         <Route path="/admin/clients/:id/assign" element={<AdminRoute><CoachAssignSessionPage /></AdminRoute>} />
         <Route path="/admin/calendar" element={<AdminRoute><CoachCalendarPage /></AdminRoute>} />
+        <Route path="/admin/sessions/:id" element={<AdminRoute><CoachSessionPage /></AdminRoute>} />
         <Route path="/set-password" element={<ProtectedRoute><SetPasswordPage /></ProtectedRoute>} />
       </Routes>
       <BottomNav />

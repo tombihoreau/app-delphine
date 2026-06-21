@@ -21,6 +21,23 @@ const formatDateKey = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const computeAgeFromBirthDate = (birthDate) => {
+  if (!birthDate) return null;
+
+  const birth = new Date(`${birthDate}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+
+  return age >= 0 ? age : null;
+};
+
 const getCurrentWeekCheckins = (userId, start, end) => db.prepare(`
   SELECT
     checkin_date,
@@ -45,7 +62,7 @@ const getHomepage = (req, res) => {
 
   try {
     const user = db.prepare(`
-      SELECT id, name, first_name, last_name, age, email, phone, offer_type, created_at
+      SELECT id, name, first_name, last_name, age, email, phone, created_at
       FROM users
       WHERE id = ?
     `).get(userId);
@@ -54,7 +71,7 @@ const getHomepage = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
         af.id as feedback_id
       FROM program_assignments pa
@@ -68,7 +85,7 @@ const getHomepage = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
         af.id as feedback_id
       FROM program_assignments pa
@@ -86,7 +103,7 @@ const getHomepage = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
         af.id as feedback_id
       FROM program_assignments pa
@@ -146,7 +163,7 @@ const getCalendar = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes
       FROM program_assignments pa
       JOIN programs p ON p.id = pa.program_id
@@ -168,7 +185,7 @@ const getProgress = (req, res) => {
 
   try {
     const user = db.prepare(`
-      SELECT id, name, first_name, last_name, age, email, phone, offer_type, created_at
+      SELECT id, name, first_name, last_name, age, email, phone, created_at
       FROM users
       WHERE id = ?
     `).get(userId);
@@ -177,7 +194,7 @@ const getProgress = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes
       FROM program_assignments pa
       JOIN programs p ON p.id = pa.program_id
@@ -199,11 +216,10 @@ const getProgress = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
         af.difficulty,
-        af.fatigue,
-        af.pain,
+        af.pain_notes,
         af.comments,
         af.duration_minutes,
         af.completed_at
@@ -256,11 +272,17 @@ const getSession = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
+        p.banner_image,
         p.coach_notes,
         p.description as program_description,
-        af.id as feedback_id
+        af.id as feedback_id,
+        af.difficulty as feedback_difficulty,
+        af.pain_notes as feedback_pain_notes,
+        af.comments as feedback_comments,
+        af.duration_minutes as feedback_duration_minutes,
+        af.completed_at as feedback_completed_at
       FROM program_assignments pa
       JOIN programs p ON p.id = pa.program_id
       LEFT JOIN assignment_feedback af ON af.assignment_id = pa.id AND af.user_id = pa.user_id
@@ -272,7 +294,7 @@ const getSession = (req, res) => {
     }
 
     const steps = db.prepare(`
-      SELECT id, name, description
+      SELECT id, name, duration_minutes, description
       FROM workouts
       WHERE program_id = ?
       ORDER BY week ASC, day ASC, id ASC
@@ -332,6 +354,62 @@ const saveDailyCheckin = (req, res) => {
   }
 };
 
+const updateProfile = (req, res) => {
+  const userId = req.user.id;
+  const { email, first_name, last_name, birth_date, phone } = req.body;
+  const name = [first_name, last_name].filter(Boolean).join(' ').trim();
+  const age = computeAgeFromBirthDate(birth_date);
+
+  if (!name || !email) {
+    return res.status(400).json({ error: 'Nom, prénom et email requis' });
+  }
+
+  try {
+    const existingUser = db.prepare('SELECT id FROM users WHERE id = ? AND role = ?').get(userId, 'user');
+    if (!existingUser) {
+      return res.status(404).json({ error: 'Client non trouvé' });
+    }
+
+    const emailOwner = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, userId);
+    if (emailOwner) {
+      return res.status(400).json({ error: 'Email déjà utilisé' });
+    }
+
+    db.prepare(`
+      UPDATE users
+      SET
+        email = ?,
+        name = ?,
+        first_name = ?,
+        last_name = ?,
+        birth_date = ?,
+        age = ?,
+        phone = ?
+      WHERE id = ? AND role = 'user'
+    `).run(
+      email,
+      name,
+      first_name || null,
+      last_name || null,
+      birth_date || null,
+      age,
+      phone || null,
+      userId
+    );
+
+    const user = db.prepare(`
+      SELECT id, email, name, first_name, last_name, birth_date, age, phone, created_at
+      FROM users
+      WHERE id = ?
+    `).get(userId);
+
+    res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
 const completeSession = (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -349,12 +427,11 @@ const completeSession = (req, res) => {
     }
 
     db.prepare(`
-      INSERT INTO assignment_feedback (assignment_id, user_id, difficulty, fatigue, pain, comments, duration_minutes)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO assignment_feedback (assignment_id, user_id, difficulty, pain_notes, comments, duration_minutes)
+      VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(assignment_id, user_id) DO UPDATE SET
         difficulty = excluded.difficulty,
-        fatigue = excluded.fatigue,
-        pain = excluded.pain,
+        pain_notes = excluded.pain_notes,
         comments = excluded.comments,
         duration_minutes = excluded.duration_minutes,
         completed_at = CURRENT_TIMESTAMP
@@ -362,8 +439,7 @@ const completeSession = (req, res) => {
       id,
       userId,
       req.body.difficulty || 2,
-      req.body.fatigue || 2,
-      req.body.pain || 1,
+      req.body.pain_notes || '',
       req.body.comments || '',
       req.body.duration_minutes || assignment.session_minutes || 0
     );
@@ -381,4 +457,12 @@ const completeSession = (req, res) => {
   }
 };
 
-module.exports = { getHomepage, getCalendar, getProgress, getSession, saveDailyCheckin, completeSession };
+module.exports = {
+  getHomepage,
+  getCalendar,
+  getProgress,
+  getSession,
+  saveDailyCheckin,
+  updateProfile,
+  completeSession
+};

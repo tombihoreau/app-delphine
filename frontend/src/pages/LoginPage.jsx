@@ -5,7 +5,7 @@ import api from '../services/api'
 import useAuthStore from '../store/useAuthStore'
 
 const authInputClass =
-  'h-[42px] w-full rounded-full border border-brand-tamarillo bg-transparent px-5 text-xs italic text-brand-brown outline-none placeholder:text-brand-tamarillo/70 focus:ring-2 focus:ring-brand-tamarillo/15'
+  'h-[42px] w-full rounded-full border border-brand-tamarillo bg-transparent px-5 text-xs text-brand-brown outline-none placeholder:text-brand-tamarillo/70 focus:ring-2 focus:ring-brand-tamarillo/15'
 
 const authButtonClass =
   'h-[43px] w-full rounded-full bg-brand-tamarillo px-5 text-sm font-bold text-brand-beige shadow-sm transition hover:opacity-95'
@@ -88,13 +88,7 @@ const LoginPage = () => {
           <button type="submit" className={authButtonClass}>
             Accéder à mon espace
           </button>
-          <button
-            type="button"
-            className="text-xs font-medium text-brand-tamarillo underline underline-offset-2"
-          >
-            Mot de passe oublié ?
-          </button>
-        </form>
+	        </form>
       )}
     </AuthShell>
   )

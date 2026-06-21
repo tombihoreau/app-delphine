@@ -1,5 +1,21 @@
 const db = require('../db/database');
 
+const computeAgeFromBirthDate = (birthDate) => {
+  if (!birthDate) return null;
+  const birth = new Date(`${birthDate}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDelta = today.getMonth() - birth.getMonth();
+  const dayDelta = today.getDate() - birth.getDate();
+  if (monthDelta < 0 || (monthDelta === 0 && dayDelta < 0)) {
+    age -= 1;
+  }
+
+  return age;
+};
+
 const getAllUsers = (req, res) => {
   try {
     const users = db.prepare(`
@@ -12,10 +28,7 @@ const getAllUsers = (req, res) => {
         u.birth_date,
         u.age,
         u.weight,
-        u.goal,
-        u.level,
         u.phone,
-        u.offer_type,
         u.created_at,
         COUNT(pa.id) as assignment_count,
         (
@@ -60,10 +73,7 @@ const getAdminUserDetail = (req, res) => {
         birth_date,
         age,
         weight,
-        goal,
-        level,
         phone,
-        offer_type,
         created_at
       FROM users
       WHERE id = ? AND role = 'user'
@@ -77,7 +87,7 @@ const getAdminUserDetail = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes
       FROM program_assignments pa
       JOIN programs p ON p.id = pa.program_id
@@ -89,11 +99,10 @@ const getAdminUserDetail = (req, res) => {
       SELECT
         pa.*,
         p.name as program_name,
-        p.location as program_location,
+        p.category as program_category,
         p.session_minutes,
         af.difficulty,
-        af.fatigue,
-        af.pain,
+        af.pain_notes,
         af.comments,
         af.completed_at
       FROM program_assignments pa
@@ -117,9 +126,9 @@ const getAdminUserDetail = (req, res) => {
         END as stress
       FROM daily_checkins
       WHERE user_id = ?
-      ORDER BY checkin_date DESC
-      LIMIT 7
-    `).all(id).reverse();
+      ORDER BY checkin_date ASC
+      LIMIT 120
+    `).all(id);
 
     res.json({
       user,
@@ -133,4 +142,60 @@ const getAdminUserDetail = (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAdminUserDetail };
+const updateAdminUser = (req, res) => {
+  const { id } = req.params;
+  const { email, first_name, last_name, birth_date, phone } = req.body;
+  const name = [first_name, last_name].filter(Boolean).join(' ').trim();
+  const age = computeAgeFromBirthDate(birth_date);
+
+  if (!name || !email) {
+    return res.status(400).json({ error: 'Nom, prénom et email requis' });
+  }
+
+  try {
+    const existingUser = db.prepare('SELECT id FROM users WHERE id = ? AND role = ?').get(id, 'user');
+    if (!existingUser) {
+      return res.status(404).json({ error: 'Client non trouvé' });
+    }
+
+    const emailOwner = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, id);
+    if (emailOwner) {
+      return res.status(400).json({ error: 'Email déjà utilisé' });
+    }
+
+    db.prepare(`
+      UPDATE users
+      SET
+        email = ?,
+        name = ?,
+        first_name = ?,
+        last_name = ?,
+        birth_date = ?,
+        age = ?,
+        phone = ?
+      WHERE id = ? AND role = 'user'
+    `).run(
+      email,
+      name,
+      first_name || null,
+      last_name || null,
+      birth_date || null,
+      age,
+      phone || null,
+      id
+    );
+
+    const user = db.prepare(`
+      SELECT id, email, name, first_name, last_name, birth_date, age, phone, created_at
+      FROM users
+      WHERE id = ?
+    `).get(id);
+
+    res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+module.exports = { getAllUsers, getAdminUserDetail, updateAdminUser };

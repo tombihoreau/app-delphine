@@ -4,7 +4,7 @@ import AuthShell from '../components/AuthShell'
 import api from '../services/api'
 
 const authInputClass =
-  'h-[42px] w-full rounded-full border border-brand-tamarillo bg-transparent px-5 text-xs italic text-brand-brown outline-none placeholder:text-brand-tamarillo/70 focus:ring-2 focus:ring-brand-tamarillo/15'
+  'h-[42px] w-full rounded-full border border-brand-tamarillo bg-transparent px-5 text-xs text-brand-brown outline-none placeholder:text-brand-tamarillo/70 focus:ring-2 focus:ring-brand-tamarillo/15'
 
 const authButtonClass =
   'h-[43px] w-full rounded-full bg-brand-tamarillo px-5 text-sm font-bold text-brand-beige shadow-sm transition hover:opacity-95'

@@ -124,19 +124,7 @@ const CoachProgramsPage = () => {
   const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const [editingId, setEditingId] = useState(null);
   const [query, setQuery] = useState("");
-  const [editForm, setEditForm] = useState({
-    name: "",
-    goal: "",
-    level: "",
-    duration_weeks: "",
-    description: "",
-    session_minutes: "",
-    banner_image: "",
-    coach_notes: "",
-    location: "Domicile",
-  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [programToDelete, setProgramToDelete] = useState(null);
@@ -174,44 +162,6 @@ const CoachProgramsPage = () => {
     }
   };
 
-  const openEdit = (program) => {
-    setError("");
-    setSuccess("");
-    setEditingId(program.id);
-    setExpandedId(program.id);
-
-    setEditForm({
-      name: program.name,
-      goal: program.goal,
-      level: program.level,
-      duration_weeks: String(program.duration_weeks || ""),
-      description: program.description || "",
-      session_minutes: String(program.session_minutes || 35),
-      banner_image: program.banner_image || "",
-      coach_notes: program.coach_notes || "",
-      location: program.location || "Domicile",
-    });
-  };
-
-  const closeEdit = () => {
-    setEditingId(null);
-  };
-
-  const handleUpdateProgram = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    try {
-      await api.put(`/api/admin/programs/${editingId}`, editForm);
-      setSuccess("Programme mis à jour");
-      closeEdit();
-      await loadData();
-    } catch (err) {
-      setError(err.response?.data?.error || "Erreur lors de la mise à jour");
-    }
-  };
-
   const handleDuplicateProgram = async (programId) => {
     setError("");
     setSuccess("");
@@ -245,10 +195,6 @@ const CoachProgramsPage = () => {
 
       if (expandedId === programId) {
         setExpandedId(null);
-      }
-
-      if (editingId === programId) {
-        closeEdit();
       }
 
       await loadData();
@@ -320,17 +266,12 @@ const CoachProgramsPage = () => {
               {isExpanded && (
                 <div className="pb-7 pl-7 pr-2 text-brand-brown">
                   <dl className="grid grid-cols-[90px_1fr] gap-y-3 text-base">
-                    <dt className="font-semibold text-[#3b0825]">Type</dt>
-                    <dd>
-                      {program.type || program.activity_type || "Course à pied"}
-                    </dd>
+	                    <dt className="font-semibold text-[#3b0825]">Type</dt>
+	                    <dd>{program.category}</dd>
 
-                    <dt className="font-semibold text-[#3b0825]">Durée</dt>
-                    <dd>{program.session_minutes || 35} min</dd>
-
-                    <dt className="font-semibold text-[#3b0825]">Lieu</dt>
-                    <dd>{program.location || "Domicile"}</dd>
-                  </dl>
+	                    <dt className="font-semibold text-[#3b0825]">Durée</dt>
+	                    <dd>{program.session_minutes || 35} min</dd>
+	                  </dl>
 
                   <div className="mt-7 grid grid-cols-[90px_1fr] items-center">
                     <p className="font-semibold text-[#3b0825]">Actions</p>
@@ -338,14 +279,14 @@ const CoachProgramsPage = () => {
                     <div className="flex flex-wrap gap-5">
                       <ActionButton
                         label="Modifier le programme"
-                        onClick={() => openEdit(program)}
+                        onClick={() => navigate(`/admin/programs/${program.id}/edit`)}
                       >
                         <EditIcon />
                       </ActionButton>
 
                       <ActionButton
                         label="Voir le programme"
-                        onClick={() => setExpandedId(program.id)}
+                        onClick={() => navigate(`/admin/programs/${program.id}`)}
                       >
                         <EyeIcon />
                       </ActionButton>
@@ -380,119 +321,6 @@ const CoachProgramsPage = () => {
           </p>
         )}
       </div>
-
-      {editingId && (
-        <section className="mt-6 rounded-md border border-brand-peach/70 bg-brand-beige p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-medium text-brand-brown">
-              Modifier le programme
-            </h2>
-
-            <button
-              type="button"
-              onClick={closeEdit}
-              className="text-sm text-brand-tamarillo"
-            >
-              Fermer
-            </button>
-          </div>
-
-          <form onSubmit={handleUpdateProgram} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Titre"
-              value={editForm.name}
-              onChange={(e) =>
-                setEditForm({ ...editForm, name: e.target.value })
-              }
-              className="field-input"
-              required
-            />
-
-            <textarea
-              placeholder="Description"
-              value={editForm.description}
-              onChange={(e) =>
-                setEditForm({ ...editForm, description: e.target.value })
-              }
-              className="field-area"
-            />
-
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                value={editForm.goal}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, goal: e.target.value })
-                }
-                className="field-input"
-                required
-              >
-                <option value="">Objectif</option>
-                <option value="Prendre de la masse">Prendre de la masse</option>
-                <option value="Perdre du poids">Perdre du poids</option>
-                <option value="Améliorer la condition physique">
-                  Améliorer la condition physique
-                </option>
-              </select>
-
-              <select
-                value={editForm.level}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, level: e.target.value })
-                }
-                className="field-input"
-                required
-              >
-                <option value="">Niveau</option>
-                <option value="débutant">Débutant</option>
-                <option value="intermédiaire">Intermédiaire</option>
-                <option value="avancé">Avancé</option>
-              </select>
-            </div>
-
-            <input
-              type="number"
-              min="1"
-              placeholder="Durée séance en minutes"
-              value={editForm.session_minutes}
-              onChange={(e) =>
-                setEditForm({ ...editForm, session_minutes: e.target.value })
-              }
-              className="field-input"
-              required
-            />
-
-            <input
-              type="text"
-              placeholder="Lieu"
-              value={editForm.location}
-              onChange={(e) =>
-                setEditForm({ ...editForm, location: e.target.value })
-              }
-              className="field-input"
-            />
-
-            <input
-              type="number"
-              min="1"
-              placeholder="Durée en semaines"
-              value={editForm.duration_weeks}
-              onChange={(e) =>
-                setEditForm({ ...editForm, duration_weeks: e.target.value })
-              }
-              className="field-input"
-              required
-            />
-
-            <button
-              type="submit"
-              className="w-full rounded-md bg-brand-tamarillo px-5 py-3 text-sm font-semibold text-brand-beige"
-            >
-              Enregistrer
-            </button>
-          </form>
-        </section>
-      )}
 
       {programToDelete ? (
         <div className="fixed inset-0 z-[60] flex items-end bg-black/35">

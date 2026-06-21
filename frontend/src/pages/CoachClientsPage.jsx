@@ -28,22 +28,6 @@ const PlusIcon = () => (
   </svg>
 )
 
-const GiftIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-  >
-    <path d="M20 12v8H4v-8" />
-    <path d="M2 7h20v5H2z" />
-    <path d="M12 7v13" />
-    <path d="M12 7H8.5A2.5 2.5 0 1 1 11 4.5c0 1.4 1 2.5 1 2.5Z" />
-    <path d="M12 7h3.5A2.5 2.5 0 1 0 13 4.5c0 1.4-1 2.5-1 2.5Z" />
-  </svg>
-)
-
 const CalendarIcon = () => (
   <svg
     viewBox="0 0 24 24"
@@ -72,10 +56,6 @@ const getClientPhone = (client) => {
   return client.phone || client.phone_number || client.mobile || ''
 }
 
-const getClientOffer = (client) => {
-  return client.offer_type || client.subscription_type || client.offer || 'Type d’offre'
-}
-
 const CoachClientsPage = () => {
   const navigate = useNavigate()
   const [clients, setClients] = useState([])
@@ -95,8 +75,7 @@ const CoachClientsPage = () => {
       [
         client.name,
         client.email,
-        getClientPhone(client),
-        getClientOffer(client)
+        getClientPhone(client)
       ]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(normalized))
@@ -148,7 +127,6 @@ const CoachClientsPage = () => {
       <div className="space-y-5">
         {filteredClients.map((client) => {
           const phone = getClientPhone(client)
-          const offer = getClientOffer(client)
           const joinDate = formatJoinDate(client.created_at)
 
           return (
@@ -168,11 +146,6 @@ const CoachClientsPage = () => {
               </p>
 
               <div className="mt-2 space-y-1 text-sm text-brand-tamarillo">
-                <p className="flex items-center gap-1.5">
-                  <GiftIcon />
-                  {offer}
-                </p>
-
                 {joinDate ? (
                   <p className="flex items-center gap-1.5">
                     <CalendarIcon />

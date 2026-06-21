@@ -1,7 +1,7 @@
-const CoachLayout = ({ title, subtitle, action, children }) => {
+const CoachLayout = ({ title, subtitle, action, compactBottom = false, children }) => {
   return (
-    <div className="client-screen">
-      <div className="client-frame relative pb-28">
+    <div className={`client-screen ${compactBottom ? 'pb-6' : ''}`}>
+      <div className={`client-frame relative ${compactBottom ? 'pb-6' : 'pb-28'}`}>
         {title || subtitle || action ? (
           <div className="mb-7 flex items-start justify-between gap-4">
             <div>

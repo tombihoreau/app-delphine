@@ -11,7 +11,7 @@ const authMiddleware = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = db.prepare(`
-      SELECT id, email, name, first_name, last_name, role, age, weight, goal, level, created_at
+      SELECT id, email, name, first_name, last_name, role, age, weight, created_at
       FROM users
       WHERE id = ?
     `).get(decoded.id);

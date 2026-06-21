@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import MoodSmiley from '../components/MoodSmiley'
 import SunIcon from '../components/SunIcon'
+import WeeklyMetricChart from '../components/WeeklyMetricChart'
 
 const weekLabels = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
-const chartLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sa', 'Di']
 
 const Chevron = ({ direction = 'left' }) => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -30,14 +31,6 @@ const EditIcon = () => (
     <path d="M12 20h9" />
     <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
   </svg>
-)
-
-const ProgramIcon = () => (
-  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-brand-beige">
-    <svg viewBox="0 0 24 24" className="h-8 w-8 text-brand-brown" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M7 17c1.1-2.2 2.8-4 5-5.5M8.5 8c1.4.1 2.4 1 3 2.3M5 20h14M9 15l-3 3M11 9l2-2m-6 5 1-4 4-1 2.5 2.5-1 4-4 1Z" />
-    </svg>
-  </div>
 )
 
 const moodLabel = (value) => {
@@ -91,61 +84,6 @@ const buildWeekDays = (weekRange, assignments, checkins = []) => {
   })
 }
 
-const buildPath = (values) => {
-  if (!values.length) return ''
-  const width = 300
-  const height = 150
-  const stepX = values.length === 1 ? 0 : width / (values.length - 1)
-  const points = values.map((value, index) => {
-    const x = index * stepX
-    const y = height - ((value - 1) / 4) * (height - 14) - 7
-    return [x, y]
-  })
-  return points.map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')
-}
-
-const getWeekdayIndex = (dateKey) => {
-  const day = new Date(`${dateKey}T12:00:00`).getDay()
-  return day === 0 ? 6 : day - 1
-}
-
-const buildMoodPoints = (data) => {
-  const width = 340
-  const paddingX = 24
-  const topCenter = 65
-  const bottomCenter = 265
-  const stepY = (bottomCenter - topCenter) / 4
-  const stepX = (width - paddingX * 2) / 6
-
-  return data
-    .filter((item) => typeof item.mood === 'number' && item.checkin_date)
-    .map((item) => {
-      const dayIndex = getWeekdayIndex(item.checkin_date)
-      return {
-        value: item.mood,
-        dayIndex,
-        x: paddingX + dayIndex * stepX,
-        y: bottomCenter - (item.mood - 1) * stepY
-      }
-    })
-    .sort((a, b) => a.dayIndex - b.dayIndex)
-}
-
-const moodGridLines = [90, 140, 190, 240]
-
-const buildSmoothPath = (points) => {
-  if (!points.length) return ''
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`
-
-  return points.reduce((path, point, index) => {
-    if (index === 0) return `M ${point.x} ${point.y}`
-
-    const previous = points[index - 1]
-    const midX = (previous.x + point.x) / 2
-    return `${path} Q ${previous.x} ${previous.y} ${midX} ${(previous.y + point.y) / 2} T ${point.x} ${point.y}`
-  }, '')
-}
-
 const SectionHeading = ({ title, weekLabel, onPrevious, onNext }) => (
   <div className="mb-3 flex items-center justify-between text-brand-tamarillo">
     <button type="button" onClick={onPrevious} aria-label="Semaine précédente">
@@ -161,83 +99,9 @@ const SectionHeading = ({ title, weekLabel, onPrevious, onNext }) => (
   </div>
 )
 
-const MoodChart = ({ data, weekLabel, onPrevious, onNext }) => {
-  const points = buildMoodPoints(data)
-
-  return (
-    <section className="mb-7">
-      <SectionHeading title="Mon humeur de la semaine" weekLabel={weekLabel} onPrevious={onPrevious} onNext={onNext} />
-      <div className="relative h-[315px] overflow-hidden">
-        {moodGridLines.map((lineTop) => (
-          <div key={lineTop} className="absolute left-0 right-0 border-t border-brand-brown/10" style={{ top: 32 + lineTop }} />
-        ))}
-        <svg viewBox="0 0 340 290" className="absolute inset-x-0 top-8 mx-auto h-[300px] w-full max-w-[340px]">
-          <path d={buildSmoothPath(points)} fill="none" stroke="rgba(57, 6, 0, 0.18)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <div className="absolute inset-x-0 top-8 mx-auto h-[290px] w-full max-w-[340px]">
-          {points.map((point) => {
-            const top = point.y - 20
-            return (
-              <MoodSmiley
-                key={`${point.dayIndex}-${point.value}`}
-                value={point.value}
-                alt=""
-                variant="chart"
-                className="absolute h-10 w-10"
-                style={{ top, left: point.x - 20 }}
-              />
-            )
-          })}
-        </div>
-        <div className="absolute inset-x-0 bottom-8 mx-auto grid w-full max-w-[340px] grid-cols-7 text-center text-xs text-brand-brown">
-          {chartLabels.map((label) => <span key={label}>{label}</span>)}
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 flex flex-wrap gap-x-3 gap-y-1 text-[0.68rem] text-brand-brown/80">
-          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#ffd84f]" />Très bien</span>
-          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#83d7a4]" />Bien</span>
-          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#eee7ec]" />Neutre</span>
-          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#b8bbff]" />Fatigué</span>
-          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#f18a6d]" />En colère</span>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-const LineChart = ({ title, data, type, weekLabel, onPrevious, onNext }) => {
-  const values = data.map((item) => item[type]).filter((value) => typeof value === 'number')
-
-  return (
-    <section className="mb-7">
-      <SectionHeading title={title} weekLabel={weekLabel} onPrevious={onPrevious} onNext={onNext} />
-      <div className="relative h-[225px] pl-7">
-        {[1, 2, 3, 4, 5].map((value, index) => (
-          <div key={value} className="absolute left-7 right-0 border-t border-brand-brown/10" style={{ top: `${14 + index * 18}%` }}>
-            <span className="absolute left-[-22px] -translate-y-1/2 text-xs text-brand-brown">{6 - value}</span>
-          </div>
-        ))}
-        <svg viewBox="0 0 300 160" className="absolute inset-x-0 top-3 mx-auto h-[170px] w-full max-w-[300px]">
-          <path d={buildPath(values)} fill="none" stroke="rgba(57, 6, 0, 0.16)" strokeWidth="1.5" />
-          {values.map((value, index) => {
-            const x = values.length === 1 ? 0 : (300 / (values.length - 1)) * index
-            const y = 150 - ((value - 1) / 4) * 136 - 7
-            const color = type === 'energy' ? '#ffc928' : value >= 4 ? '#d9dee0' : value === 3 ? '#e7dfed' : '#b8bbff'
-            return <circle key={`${type}-${index}`} cx={x} cy={y} r="5" fill={color} />
-          })}
-        </svg>
-        <div className="absolute inset-x-0 bottom-0 ml-7 grid max-w-[300px] grid-cols-7 text-center text-xs text-brand-brown">
-          {chartLabels.map((label) => <span key={`${title}-${label}`}>{label}</span>)}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 const ClientProgressPage = () => {
-  const [summaryData, setSummaryData] = useState(null)
-  const [moodData, setMoodData] = useState(null)
-  const [energyData, setEnergyData] = useState(null)
-  const [sleepData, setSleepData] = useState(null)
+  const navigate = useNavigate()
+  const [progressByWeek, setProgressByWeek] = useState({})
   const [error, setError] = useState('')
   const [summaryWeekDate, setSummaryWeekDate] = useState(() => new Date())
   const [moodWeekDate, setMoodWeekDate] = useState(() => new Date())
@@ -246,28 +110,29 @@ const ClientProgressPage = () => {
   const [selectedDate, setSelectedDate] = useState(() => formatDateKey(new Date()))
   const [selectedDailyState, setSelectedDailyState] = useState(undefined)
 
-  useEffect(() => {
-    loadProgress(summaryWeekDate, setSummaryData)
-  }, [summaryWeekDate])
+  const summaryWeekKey = formatDateKey(summaryWeekDate)
+  const moodWeekKey = formatDateKey(moodWeekDate)
+  const energyWeekKey = formatDateKey(energyWeekDate)
+  const sleepWeekKey = formatDateKey(sleepWeekDate)
+
+  const requestedWeekKeys = useMemo(() => (
+    Array.from(new Set([summaryWeekKey, moodWeekKey, energyWeekKey, sleepWeekKey]))
+  ), [summaryWeekKey, moodWeekKey, energyWeekKey, sleepWeekKey])
 
   useEffect(() => {
-    loadProgress(moodWeekDate, setMoodData)
-  }, [moodWeekDate])
+    requestedWeekKeys.forEach((weekKey) => {
+      if (!progressByWeek[weekKey]) {
+        loadProgress(weekKey)
+      }
+    })
+  }, [requestedWeekKeys, progressByWeek])
 
-  useEffect(() => {
-    loadProgress(energyWeekDate, setEnergyData)
-  }, [energyWeekDate])
-
-  useEffect(() => {
-    loadProgress(sleepWeekDate, setSleepData)
-  }, [sleepWeekDate])
-
-  const loadProgress = async (date, setSectionData) => {
+  const loadProgress = async (weekKey) => {
     try {
       const response = await api.get('/api/client/progress', {
-        params: { week: formatDateKey(date) }
+        params: { week: weekKey }
       })
-      setSectionData(response.data)
+      setProgressByWeek((current) => ({ ...current, [weekKey]: response.data }))
     } catch (err) {
       setError('Erreur lors du chargement de votre espace')
     }
@@ -288,6 +153,11 @@ const ClientProgressPage = () => {
       return next
     })
   }
+
+  const summaryData = progressByWeek[summaryWeekKey]
+  const moodData = progressByWeek[moodWeekKey]
+  const energyData = progressByWeek[energyWeekKey]
+  const sleepData = progressByWeek[sleepWeekKey]
 
   const weekDays = useMemo(
     () => buildWeekDays(
@@ -429,7 +299,7 @@ const ClientProgressPage = () => {
                       <span>{featuredSession.session_minutes || 35} min</span>
                     </div>
                     <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo bg-brand-beige px-3 py-1 text-xs text-brand-tamarillo">
-                      {featuredSession.program_location || 'Course à pied'}
+                      {featuredSession.program_category}
                     </span>
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#6bbd7d] bg-[#e6f5e7] px-3 py-1 text-xs text-[#3d8a4c]">
@@ -441,39 +311,49 @@ const ClientProgressPage = () => {
             ) : null}
           </section>
 
-          <MoodChart
-            data={moodData?.checkins || []}
-            weekLabel={moodWeekLabel}
-            onPrevious={() => changeWeek(setMoodWeekDate, -1)}
-            onNext={() => changeWeek(setMoodWeekDate, 1)}
-          />
-          <LineChart
-            title="Mon niveau de fatigue"
-            data={energyData?.checkins || []}
-            type="energy"
-            weekLabel={energyWeekLabel}
-            onPrevious={() => changeWeek(setEnergyWeekDate, -1)}
-            onNext={() => changeWeek(setEnergyWeekDate, 1)}
-          />
-          <LineChart
-            title="Mon niveau de sommeil"
-            data={sleepData?.checkins || []}
-            type="sleep_quality"
-            weekLabel={sleepWeekLabel}
-            onPrevious={() => changeWeek(setSleepWeekDate, -1)}
-            onNext={() => changeWeek(setSleepWeekDate, 1)}
-          />
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-10 lg:gap-y-6">
+            <div className="lg:col-span-2 lg:mx-auto lg:w-full lg:max-w-[520px]">
+              <WeeklyMetricChart
+                title="Mon humeur de la semaine"
+                data={moodData?.checkins || []}
+                type="mood"
+                weekLabel={moodWeekLabel}
+                onPreviousWeek={() => changeWeek(setMoodWeekDate, -1)}
+                onNextWeek={() => changeWeek(setMoodWeekDate, 1)}
+              />
+            </div>
+            <WeeklyMetricChart
+              title="Mon niveau de fatigue"
+              data={energyData?.checkins || []}
+              type="energy"
+              weekLabel={energyWeekLabel}
+              onPreviousWeek={() => changeWeek(setEnergyWeekDate, -1)}
+              onNextWeek={() => changeWeek(setEnergyWeekDate, 1)}
+            />
+            <WeeklyMetricChart
+              title="Mon niveau de sommeil"
+              data={sleepData?.checkins || []}
+              type="sleep_quality"
+              weekLabel={sleepWeekLabel}
+              onPreviousWeek={() => changeWeek(setSleepWeekDate, -1)}
+              onNextWeek={() => changeWeek(setSleepWeekDate, 1)}
+            />
+          </div>
 
           <section>
             <h2 className="mb-4 font-display text-xl font-normal text-brand-tamarillo">Mes informations</h2>
             <article className="rounded-md bg-brand-peach/35 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-sm leading-5 text-brand-brown">
-                  <p>{user?.name || 'Adeline Line'} {user?.age ? `${user.age} ans` : ''}</p>
-                  <p>{user?.email || 'adeline@line.com'} • {user?.phone || '01 02 03 04 05'}</p>
-                  <p>{user?.offer_type || 'Type d’offre'}</p>
+                  <p>{user?.name || ''} {user?.age ? `${user.age} ans` : ''}</p>
+                  <p>{user?.email || ''}{user?.phone ? ` • ${user.phone}` : ''}</p>
                 </div>
-                <button type="button" className="text-brand-tamarillo" aria-label="Modifier mes informations">
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile/edit')}
+                  className="text-brand-tamarillo"
+                  aria-label="Modifier mes informations"
+                >
                   <EditIcon />
                 </button>
               </div>

@@ -44,7 +44,7 @@ const BottomNav = () => {
 
   if (!isAuthenticated) return null
   if (location.pathname === '/set-password') return null
-  if (location.pathname.startsWith('/mood') || location.pathname.startsWith('/sessions/')) return null
+  if (location.pathname.startsWith('/mood') || location.pathname.startsWith('/sessions/') || location.pathname.startsWith('/profile')) return null
 
   if (user?.role === 'admin') {
     const adminListPages = ['/admin/calendar', '/admin/programs', '/admin/clients']

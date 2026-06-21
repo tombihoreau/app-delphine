@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
+import CoachBottomAction, { coachPrimaryActionClass } from '../components/CoachBottomAction'
 import api from '../services/api'
 
 const BackIcon = () => (
@@ -30,12 +31,32 @@ const CoachProgramAssignPage = () => {
   const [clients, setClients] = useState([])
   const [selectedClientIds, setSelectedClientIds] = useState([])
   const [scheduledDate, setScheduledDate] = useState('')
+  const [clientsOpen, setClientsOpen] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const clientsDropdownRef = useRef(null)
 
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (!clientsOpen) return undefined
+
+    const handlePointerDown = (event) => {
+      if (!clientsDropdownRef.current?.contains(event.target)) {
+        setClientsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+    }
+  }, [clientsOpen])
 
   const loadData = async () => {
     try {
@@ -62,6 +83,20 @@ const CoachProgramAssignPage = () => {
         : [...current, clientId]
     )
   }
+
+  const selectedClientsLabel = useMemo(() => {
+    if (selectedClientIds.length === 0) {
+      return 'Sélectionner une ou plusieurs clientes'
+    }
+
+    const selectedNames = clients
+      .filter((client) => selectedClientIds.includes(client.id))
+      .map((client) => client.name)
+
+    if (selectedNames.length <= 2) return selectedNames.join(', ')
+
+    return `${selectedNames.length} clientes sélectionnées`
+  }, [clients, selectedClientIds])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -95,17 +130,17 @@ const CoachProgramAssignPage = () => {
   }
 
   return (
-    <CoachLayout title="">
+    <CoachLayout title="" compactBottom>
       {error && (
         <p className="mb-4 rounded-md border border-brand-tamarillo bg-brand-peach/30 px-4 py-3 text-sm text-brand-tamarillo">
           {error}
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="pb-20">
+      <form onSubmit={handleSubmit} className="flex min-h-[calc(100vh-7rem)] flex-col">
         <button
           type="button"
-          onClick={() => navigate('/admin/programs')}
+          onClick={() => navigate(-1)}
           className="mb-5 inline-flex items-center gap-1 text-sm text-brand-tamarillo"
         >
           <BackIcon />
@@ -123,30 +158,41 @@ const CoachProgramAssignPage = () => {
         <div className="space-y-4">
           <div>
             <FieldLabel>Attribuer à ...</FieldLabel>
-            <div className="rounded-md border border-brand-brown/35 bg-transparent p-2">
-              <div className="mb-2 flex h-[28px] items-center justify-between px-2 text-xs text-brand-brown/45">
-                <span>Sélectionner une ou plusieurs clientes</span>
-                <SelectArrow />
-              </div>
-              <div className="max-h-40 space-y-1 overflow-y-auto">
-                {clients.map((client) => {
-                  const selected = selectedClientIds.includes(client.id)
-                  return (
-                    <button
-                      key={client.id}
-                      type="button"
-                      onClick={() => toggleClient(client.id)}
-                      className={`w-full rounded px-3 py-2 text-left text-sm transition ${
-                        selected
-                          ? 'bg-brand-tamarillo text-brand-beige'
-                          : 'text-brand-brown hover:bg-brand-peach/40'
-                      }`}
-                    >
-                      {client.name}
-                    </button>
-                  )
-                })}
-              </div>
+            <div ref={clientsDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setClientsOpen((open) => !open)}
+                className="flex h-[43px] w-full items-center justify-between rounded-md border border-brand-brown/35 bg-transparent px-4 text-left text-sm text-brand-brown outline-none focus:border-brand-tamarillo"
+              >
+                <span className={`truncate ${selectedClientIds.length ? '' : 'text-brand-brown/35'}`}>
+                  {selectedClientsLabel}
+                </span>
+                <span className={`shrink-0 text-brand-brown/60 transition-transform ${clientsOpen ? '' : 'rotate-180'}`}>
+                  <SelectArrow />
+                </span>
+              </button>
+
+              {clientsOpen ? (
+                <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-44 overflow-y-auto rounded-md border border-brand-brown/25 bg-brand-beige p-2 shadow-float">
+                  {clients.map((client) => {
+                    const selected = selectedClientIds.includes(client.id)
+                    return (
+                      <button
+                        key={client.id}
+                        type="button"
+                        onClick={() => toggleClient(client.id)}
+                        className={`w-full rounded px-3 py-2 text-left text-sm transition ${
+                          selected
+                            ? 'bg-brand-tamarillo text-brand-beige'
+                            : 'text-brand-brown hover:bg-brand-peach/40'
+                        }`}
+                      >
+                        {client.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -162,17 +208,15 @@ const CoachProgramAssignPage = () => {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-brand-beige px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
-          <div className="mx-auto max-w-md">
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full rounded-full bg-brand-tamarillo px-5 py-4 text-base font-bold text-brand-beige shadow-float disabled:opacity-60"
-            >
-              {saving ? 'Attribution...' : 'Valider'}
-            </button>
-          </div>
-        </div>
+        <CoachBottomAction>
+          <button
+            type="submit"
+            disabled={saving}
+            className={coachPrimaryActionClass}
+          >
+            {saving ? 'Attribution...' : 'Valider'}
+          </button>
+        </CoachBottomAction>
       </form>
     </CoachLayout>
   )

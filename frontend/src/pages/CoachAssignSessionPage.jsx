@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
+import CoachBottomAction, { coachPrimaryActionClass } from '../components/CoachBottomAction'
 import api from '../services/api'
 
 const ArrowLeft = () => (
@@ -67,13 +68,13 @@ const CoachAssignSessionPage = () => {
   }
 
   return (
-    <CoachLayout headerLabel="Coach_ajout programme" title="">
+    <CoachLayout headerLabel="Coach_ajout programme" title="" compactBottom>
       {error && <p className="status-banner bg-[#fdeaea] text-danger">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="pb-20">
+      <form onSubmit={handleSubmit} className="flex min-h-[calc(100vh-7rem)] flex-col">
         <button
           type="button"
-          onClick={() => navigate(`/admin/clients/${id}`)}
+          onClick={() => navigate(-1)}
           className="mb-5 inline-flex items-center gap-1 text-sm text-brand-tamarillo"
         >
           <ArrowLeft />
@@ -130,13 +131,11 @@ const CoachAssignSessionPage = () => {
           />
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-brand-beige px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
-          <div className="mx-auto max-w-md">
-            <button type="submit" className="w-full rounded-full bg-brand-tamarillo px-5 py-4 text-base font-bold text-brand-beige shadow-float">
-              Valider
-            </button>
-          </div>
-        </div>
+        <CoachBottomAction>
+          <button type="submit" className={coachPrimaryActionClass}>
+            Valider
+          </button>
+        </CoachBottomAction>
       </form>
     </CoachLayout>
   )

@@ -4,6 +4,7 @@ import api from "../services/api";
 import useAuthStore from "../store/useAuthStore";
 import MoodSmiley from "../components/MoodSmiley";
 import SunIcon from "../components/SunIcon";
+import HorizontalScrollRow from "../components/HorizontalScrollRow";
 
 const weekLabels = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"];
 
@@ -29,19 +30,6 @@ const ClockIcon = () => (
   >
     <circle cx="12" cy="12" r="8" />
     <path d="M12 8v5l3 2" />
-  </svg>
-);
-
-const HomePin = () => (
-  <svg
-    viewBox="0 0 24 24"
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-  >
-    <path d="M5 10.5 12 5l7 5.5V19H5z" />
-    <path d="M9.5 19v-5h5v5" />
   </svg>
 );
 
@@ -106,13 +94,9 @@ const SessionCard = ({ assignment, compact = false, featured = false, onOpen }) 
               <ClockIcon />
               {assignment.session_minutes || 35} min
             </span>
-            <span className="inline-flex items-center gap-1">
-              <HomePin />
-              {assignment.program_location || "Domicile"}
-            </span>
           </div>
           <span className="mt-3 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
-            Course à pied
+            {assignment.program_category}
           </span>
         </div>
 
@@ -238,7 +222,7 @@ const DashboardPage = () => {
             </button>
           </div>
 
-          <div className="mb-5 grid grid-cols-7 gap-2">
+          <div className="mb-8 grid grid-cols-7 gap-2">
             {weekDays.map((day) => {
               const selected = day.key === selectedDate;
               return (
@@ -257,7 +241,7 @@ const DashboardPage = () => {
                     }`}
                   >
                     {day.day}
-                    {day.hasAssignment || day.hasCheckin ? (
+                    {day.hasAssignment ? (
                       <span className="absolute -bottom-3 h-1.5 w-1.5 rounded-full bg-brand-tamarillo" />
                     ) : null}
                   </div>
@@ -300,7 +284,7 @@ const DashboardPage = () => {
           <h2 className="mb-4 text-xl font-medium text-brand-brown">
             Mes prochaines séances
           </h2>
-          <div className="no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-2">
+          <HorizontalScrollRow>
             {(data?.upcomingAssignments || []).map((assignment) => (
               <SessionCard
                 key={assignment.id}
@@ -309,7 +293,7 @@ const DashboardPage = () => {
                 onOpen={() => navigate(`/sessions/${assignment.id}`)}
               />
             ))}
-          </div>
+          </HorizontalScrollRow>
         </section>
       </div>
     </div>

@@ -24,7 +24,7 @@ const register = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  const { name, email, goal, level, age, weight, password, first_name, last_name, birth_date } = req.body;
+  const { name, email, age, weight, password, first_name, last_name, birth_date, phone } = req.body;
 
   const fullName = name || [first_name, last_name].filter(Boolean).join(' ').trim();
   const resolvedAge = age || computeAgeFromBirthDate(birth_date);
@@ -44,8 +44,8 @@ const createUser = async (req, res) => {
     const passwordSet = password ? 1 : 0;
 
     const insertUser = db.prepare(`
-      INSERT INTO users (email, password_hash, name, first_name, last_name, birth_date, goal, level, age, weight, role, password_set)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?)
+      INSERT INTO users (email, password_hash, name, first_name, last_name, birth_date, age, weight, phone, role, password_set)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?)
     `);
     const result = insertUser.run(
       email,
@@ -54,10 +54,9 @@ const createUser = async (req, res) => {
       first_name || null,
       last_name || null,
       birth_date || null,
-      goal || null,
-      level || null,
       resolvedAge || null,
       weight || null,
+      phone || null,
       passwordSet
     );
     const userId = result.lastInsertRowid;
@@ -69,10 +68,9 @@ const createUser = async (req, res) => {
       first_name: first_name || null,
       last_name: last_name || null,
       birth_date: birth_date || null,
-      goal,
-      level,
       age: resolvedAge || null,
       weight,
+      phone: phone || null,
       password_set: Boolean(passwordSet)
     };
 
@@ -126,9 +124,7 @@ const login = async (req, res) => {
         role: user.role,
         password_set: user.password_set,
         age: user.age,
-        weight: user.weight,
-        goal: user.goal,
-        level: user.level
+        weight: user.weight
       };
       return res.json({ token, user: userData, requires_password_setup: true });
     }
@@ -150,9 +146,7 @@ const login = async (req, res) => {
       role: user.role,
       password_set: user.password_set,
       age: user.age,
-      weight: user.weight,
-      goal: user.goal,
-      level: user.level
+      weight: user.weight
     };
 
     res.json({ token, user: userData });

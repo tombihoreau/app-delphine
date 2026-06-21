@@ -13,6 +13,16 @@ const hasColumn = (tableName, columnName) => {
   return columns.some((column) => column.name === columnName);
 };
 
+const dropColumnIfExists = (tableName, columnName) => {
+  if (!hasColumn(tableName, columnName)) return;
+
+  try {
+    db.exec(`ALTER TABLE ${tableName} DROP COLUMN ${columnName}`);
+  } catch (error) {
+    console.warn(`Impossible de supprimer la colonne ${tableName}.${columnName}:`, error.message);
+  }
+};
+
 // Create tables
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -20,29 +30,23 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     name TEXT NOT NULL,
-    role TEXT DEFAULT 'user' NOT NULL,
-    password_set BOOLEAN DEFAULT FALSE NOT NULL,
-    age INTEGER,
-    weight REAL,
-    goal TEXT,
-    level TEXT,
-    phone TEXT,
-    offer_type TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+	    role TEXT DEFAULT 'user' NOT NULL,
+	    password_set BOOLEAN DEFAULT FALSE NOT NULL,
+	    age INTEGER,
+	    weight REAL,
+	    phone TEXT,
+	    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	  );
 
-  CREATE TABLE IF NOT EXISTS programs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    goal TEXT NOT NULL,
-    level TEXT NOT NULL,
-    duration_weeks INTEGER NOT NULL,
-    description TEXT,
-    session_minutes INTEGER DEFAULT 20,
-    banner_image TEXT,
-    coach_notes TEXT,
-    location TEXT DEFAULT 'Domicile'
-  );
+	  CREATE TABLE IF NOT EXISTS programs (
+	    id INTEGER PRIMARY KEY AUTOINCREMENT,
+	    name TEXT NOT NULL,
+	    category TEXT NOT NULL,
+	    description TEXT,
+	    session_minutes INTEGER DEFAULT 20,
+	    banner_image TEXT,
+	    coach_notes TEXT
+	  );
 
   CREATE TABLE IF NOT EXISTS workouts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +54,7 @@ db.exec(`
     week INTEGER NOT NULL,
     day INTEGER NOT NULL,
     name TEXT NOT NULL,
+    duration_minutes INTEGER DEFAULT 0,
     description TEXT,
     FOREIGN KEY (program_id) REFERENCES programs(id)
   );
@@ -81,16 +86,15 @@ db.exec(`
     UNIQUE(user_id, checkin_date)
   );
 
-  CREATE TABLE IF NOT EXISTS assignment_feedback (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    assignment_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    difficulty INTEGER NOT NULL,
-    fatigue INTEGER NOT NULL,
-    pain INTEGER NOT NULL,
-    comments TEXT,
-    duration_minutes INTEGER DEFAULT 0,
-    completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	  CREATE TABLE IF NOT EXISTS assignment_feedback (
+	    id INTEGER PRIMARY KEY AUTOINCREMENT,
+	    assignment_id INTEGER NOT NULL,
+	    user_id INTEGER NOT NULL,
+	    difficulty INTEGER NOT NULL,
+	    pain_notes TEXT,
+	    comments TEXT,
+	    duration_minutes INTEGER DEFAULT 0,
+	    completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (assignment_id) REFERENCES program_assignments(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     UNIQUE(assignment_id, user_id)
@@ -105,12 +109,24 @@ if (!hasColumn('programs', 'banner_image')) {
   db.exec(`ALTER TABLE programs ADD COLUMN banner_image TEXT`);
 }
 
-if (!hasColumn('programs', 'coach_notes')) {
-  db.exec(`ALTER TABLE programs ADD COLUMN coach_notes TEXT`);
+if (!hasColumn('programs', 'category')) {
+  db.exec(`ALTER TABLE programs ADD COLUMN category TEXT`);
 }
 
-if (!hasColumn('programs', 'location')) {
-  db.exec(`ALTER TABLE programs ADD COLUMN location TEXT DEFAULT 'Domicile'`);
+const legacyProgramCategorySources = ['goal', 'location'].filter((column) => hasColumn('programs', column));
+const programCategoryFallback = ['category', ...legacyProgramCategorySources.map((column) => `NULLIF(${column}, '')`), "'Course à pied'"].join(', ');
+
+db.exec(`
+  UPDATE programs
+  SET category = COALESCE(${programCategoryFallback})
+`);
+
+if (!hasColumn('workouts', 'duration_minutes')) {
+  db.exec(`ALTER TABLE workouts ADD COLUMN duration_minutes INTEGER DEFAULT 0`);
+}
+
+if (!hasColumn('programs', 'coach_notes')) {
+  db.exec(`ALTER TABLE programs ADD COLUMN coach_notes TEXT`);
 }
 
 if (!hasColumn('users', 'first_name')) {
@@ -129,13 +145,23 @@ if (!hasColumn('users', 'phone')) {
   db.exec(`ALTER TABLE users ADD COLUMN phone TEXT`);
 }
 
-if (!hasColumn('users', 'offer_type')) {
-  db.exec(`ALTER TABLE users ADD COLUMN offer_type TEXT`);
-}
-
 if (!hasColumn('daily_checkins', 'stress')) {
   db.exec(`ALTER TABLE daily_checkins ADD COLUMN stress INTEGER DEFAULT 3`);
 }
+
+if (!hasColumn('assignment_feedback', 'pain_notes')) {
+  db.exec(`ALTER TABLE assignment_feedback ADD COLUMN pain_notes TEXT`);
+}
+
+dropColumnIfExists('programs', 'goal');
+dropColumnIfExists('programs', 'level');
+dropColumnIfExists('programs', 'duration_weeks');
+dropColumnIfExists('programs', 'location');
+dropColumnIfExists('users', 'goal');
+dropColumnIfExists('users', 'level');
+dropColumnIfExists('users', 'offer_type');
+dropColumnIfExists('assignment_feedback', 'fatigue');
+dropColumnIfExists('assignment_feedback', 'pain');
 
 db.exec(`
   DROP TABLE IF EXISTS exercises;
@@ -147,18 +173,15 @@ const programCount = db.prepare('SELECT COUNT(*) as count FROM programs').get().
 if (programCount === 0) {
   // Program 1: Débutant Force
   const insertProgram1 = db.prepare(`
-    INSERT INTO programs (name, goal, level, duration_weeks, description, session_minutes, coach_notes, location)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO programs (name, category, description, session_minutes, coach_notes)
+    VALUES (?, ?, ?, ?, ?)
   `);
   const program1Id = insertProgram1.run(
     'Débutant Force',
-    'Prendre de la masse',
-    'débutant',
-    4,
+    'Renforcement',
     'Programme de musculation pour débutants visant à développer la force de base.',
     45,
-    'Conserver 90 secondes de récupération entre les blocs.',
-    'Salle'
+    'Conserver 90 secondes de récupération entre les blocs.'
   ).lastInsertRowid;
 
   // Workouts for Program 1
@@ -180,18 +203,15 @@ if (programCount === 0) {
 
   // Program 2: Cardio Débutant
   const insertProgram2 = db.prepare(`
-    INSERT INTO programs (name, goal, level, duration_weeks, description, session_minutes, coach_notes, location)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO programs (name, category, description, session_minutes, coach_notes)
+    VALUES (?, ?, ?, ?, ?)
   `);
   const program2Id = insertProgram2.run(
     'Cardio Débutant',
-    'Perdre du poids',
-    'débutant',
-    4,
+    'Course à pied',
     'Programme cardio pour débutants axé sur la perte de poids.',
     30,
-    'Commencer en aisance respiratoire avant de monter en intensité.',
-    'Domicile'
+    'Commencer en aisance respiratoire avant de monter en intensité.'
   ).lastInsertRowid;
 
   // Workouts for Program 2
@@ -211,7 +231,7 @@ db.exec(`
   UPDATE programs
   SET
     session_minutes = COALESCE(session_minutes, 20),
-    location = COALESCE(location, 'Domicile'),
+    category = COALESCE(category, 'Course à pied'),
     coach_notes = COALESCE(coach_notes, '')
 `);
 
@@ -219,9 +239,7 @@ db.exec(`
   UPDATE users
   SET
     first_name = COALESCE(first_name, trim(substr(name, 1, instr(name || ' ', ' ') - 1))),
-    last_name = COALESCE(last_name, trim(substr(name, instr(name || ' ', ' ') + 1))),
-    phone = COALESCE(phone, '01 02 03 04 05'),
-    offer_type = COALESCE(offer_type, 'Type d’offre')
+    last_name = COALESCE(last_name, trim(substr(name, instr(name || ' ', ' ') + 1)))
 `);
 
 db.exec(`
