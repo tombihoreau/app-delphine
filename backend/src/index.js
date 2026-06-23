@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('./db/database'); // Initialize database
+const { initDatabase } = require('./db/database');
 
 const routes = require('./routes/index');
 
@@ -15,17 +15,26 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api', routes);
 
-const server = app.listen(PORT, () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
-});
+const startServer = async () => {
+  await initDatabase();
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(
-      `Le port ${PORT} est deja utilise. Modifie backend/.env ou libere ce port avant de relancer l'application.`
-    );
-    process.exit(1);
-  }
+  const server = app.listen(PORT, () => {
+    console.log(`Serveur démarré sur le port ${PORT}`);
+  });
 
-  throw error;
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(
+        `Le port ${PORT} est deja utilise. Modifie backend/.env ou libere ce port avant de relancer l'application.`
+      );
+      process.exit(1);
+    }
+
+    throw error;
+  });
+};
+
+startServer().catch((error) => {
+  console.error('Erreur au démarrage du serveur:', error);
+  process.exit(1);
 });

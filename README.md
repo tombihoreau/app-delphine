@@ -4,13 +4,14 @@ Application mobile-first de coaching sportif avec espace coach et espace client.
 
 Le projet est compose de deux applications :
 
-- `backend/` : API Express, authentification JWT et base SQLite.
+- `backend/` : API Express, authentification JWT et base PostgreSQL.
 - `frontend/` : application React + Vite + Tailwind, avec support Capacitor.
 
 ## Prerequis
 
 - Node.js `20.20.2`
 - npm
+- Docker Desktop pour lancer PostgreSQL en local facilement
 - nvm recommande
 
 ```bash
@@ -35,23 +36,37 @@ Les fichiers `.env` ne sont pas versionnes.
 Backend, dans `backend/.env` :
 
 ```env
-PORT=3001
+PORT=3002
 JWT_SECRET=change-me
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=sport_coach_app
+PGUSER=postgres
+PGPASSWORD=sportcoach
+```
+
+En production, il est plus simple d'utiliser une URL fournie par l'hebergeur :
+
+```env
+DATABASE_URL=postgres://user:password@host:5432/database
+DATABASE_SSL=true
+JWT_SECRET=une-cle-longue-et-secrete
 ```
 
 Frontend, dans `frontend/.env` :
 
 ```env
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=http://localhost:3002
 ```
 
-Si aucune variable n'est definie, le backend ecoute sur `3001` et le frontend appelle `http://localhost:3001`.
+Si aucune variable n'est definie, le backend ecoute sur `3001`. En local dans ce projet, on utilise plutot `3002`, comme dans les fichiers `.env`.
 
 ## Lancement en local
 
 Lancer backend et frontend ensemble :
 
 ```bash
+npm run db:up
 npm run dev
 ```
 
@@ -65,16 +80,18 @@ npm run dev:frontend
 URLs par defaut :
 
 - Frontend : `http://localhost:5180`
-- Backend : `http://localhost:3001`
+- Backend : `http://localhost:3002`
 
 ## Scripts utiles
 
 Racine :
 
 ```bash
+npm run db:up
 npm run dev
 npm run dev:backend
 npm run dev:frontend
+npm run db:down
 ```
 
 Frontend :
@@ -96,15 +113,49 @@ npm start
 
 ## Base de donnees
 
-La base SQLite est creee automatiquement au demarrage du backend :
+Le backend utilise PostgreSQL. En local, le plus simple est de lancer la base avec Docker :
 
-```text
-backend/coaching.db
+```bash
+npm run db:up
 ```
 
-Elle est ignoree par Git. Pour repartir d'une base propre en local, il suffit d'arreter le serveur puis de supprimer ce fichier.
+Cette commande demarre un conteneur PostgreSQL avec :
 
-Au premier demarrage, des donnees de demo et un compte coach sont crees si necessaire.
+```text
+Base: sport_coach_app
+User: postgres
+Password: sportcoach
+Port: 5432
+```
+
+Elle demarre aussi Adminer pour consulter la base visuellement :
+
+```text
+URL: http://localhost:8081
+Systeme: PostgreSQL
+Serveur: postgres
+Utilisateur: postgres
+Mot de passe: sportcoach
+Base: sport_coach_app
+```
+
+Pour recopier l'ancienne base SQLite locale vers PostgreSQL :
+
+```bash
+npm run db:migrate:sqlite
+```
+
+Attention : cette commande remplace les donnees actuellement presentes dans PostgreSQL par celles de `backend/coaching.db`.
+
+Si tu utilises une installation PostgreSQL locale sans Docker, cree la base manuellement :
+
+```sql
+CREATE DATABASE sport_coach_app;
+```
+
+Au premier demarrage, les tables, des donnees de demo et un compte coach sont crees si necessaire.
+
+L'ancienne base SQLite locale `backend/coaching.db` n'est plus utilisee. Si tu as besoin de recuperer des donnees dedans, il faudra lancer un script de migration dedie avant de la supprimer.
 
 ## Compte coach par defaut
 

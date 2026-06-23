@@ -16,9 +16,9 @@ const computeAgeFromBirthDate = (birthDate) => {
   return age;
 };
 
-const getAllUsers = (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
-    const users = db.prepare(`
+    const users = await db.all(`
       SELECT
         u.id,
         u.email,
@@ -30,7 +30,7 @@ const getAllUsers = (req, res) => {
         u.weight,
         u.phone,
         u.created_at,
-        COUNT(pa.id) as assignment_count,
+        COUNT(pa.id)::INTEGER as assignment_count,
         (
           SELECT dc.mood
           FROM daily_checkins dc
@@ -50,7 +50,7 @@ const getAllUsers = (req, res) => {
       WHERE u.role = ?
       GROUP BY u.id
       ORDER BY u.name ASC
-    `).all('user');
+    `, 'user');
     res.json(users);
   } catch (error) {
     console.error(error);
@@ -58,12 +58,12 @@ const getAllUsers = (req, res) => {
   }
 };
 
-const getAdminUserDetail = (req, res) => {
+const getAdminUserDetail = async (req, res) => {
   const { id } = req.params;
   const today = new Date().toISOString().slice(0, 10);
 
   try {
-    const user = db.prepare(`
+    const user = await db.get(`
       SELECT
         id,
         email,
@@ -77,13 +77,13 @@ const getAdminUserDetail = (req, res) => {
         created_at
       FROM users
       WHERE id = ? AND role = 'user'
-    `).get(id);
+    `, id);
 
     if (!user) {
       return res.status(404).json({ error: 'Client non trouvé' });
     }
 
-    const upcomingAssignments = db.prepare(`
+    const upcomingAssignments = await db.all(`
       SELECT
         pa.*,
         p.name as program_name,
@@ -93,9 +93,9 @@ const getAdminUserDetail = (req, res) => {
       JOIN programs p ON p.id = pa.program_id
       WHERE pa.user_id = ? AND pa.scheduled_date >= ?
       ORDER BY pa.scheduled_date ASC, pa.start_time ASC
-    `).all(id, today);
+    `, id, today);
 
-    const historyAssignments = db.prepare(`
+    const historyAssignments = await db.all(`
       SELECT
         pa.*,
         p.name as program_name,
@@ -111,9 +111,9 @@ const getAdminUserDetail = (req, res) => {
       WHERE pa.user_id = ? AND (pa.scheduled_date < ? OR af.id IS NOT NULL)
       ORDER BY COALESCE(af.completed_at, pa.scheduled_date) DESC, pa.start_time DESC
       LIMIT 8
-    `).all(id, today);
+    `, id, today);
 
-    const checkins = db.prepare(`
+    const checkins = await db.all(`
       SELECT
         checkin_date,
         mood,
@@ -121,14 +121,14 @@ const getAdminUserDetail = (req, res) => {
         sleep_quality,
         CASE
           WHEN mood IS NOT NULL AND energy IS NOT NULL
-          THEN MAX(1, MIN(5, ROUND((6 - mood + 6 - energy) / 2.0)))
+          THEN GREATEST(1, LEAST(5, ROUND(((6 - mood) + (6 - energy)) / 2.0)::INTEGER))
           ELSE NULL
         END as stress
       FROM daily_checkins
       WHERE user_id = ?
       ORDER BY checkin_date ASC
       LIMIT 120
-    `).all(id);
+    `, id);
 
     res.json({
       user,
@@ -142,7 +142,7 @@ const getAdminUserDetail = (req, res) => {
   }
 };
 
-const updateAdminUser = (req, res) => {
+const updateAdminUser = async (req, res) => {
   const { id } = req.params;
   const { email, first_name, last_name, birth_date, phone } = req.body;
   const name = [first_name, last_name].filter(Boolean).join(' ').trim();
@@ -153,17 +153,17 @@ const updateAdminUser = (req, res) => {
   }
 
   try {
-    const existingUser = db.prepare('SELECT id FROM users WHERE id = ? AND role = ?').get(id, 'user');
+    const existingUser = await db.get('SELECT id FROM users WHERE id = ? AND role = ?', id, 'user');
     if (!existingUser) {
       return res.status(404).json({ error: 'Client non trouvé' });
     }
 
-    const emailOwner = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, id);
+    const emailOwner = await db.get('SELECT id FROM users WHERE email = ? AND id != ?', email, id);
     if (emailOwner) {
       return res.status(400).json({ error: 'Email déjà utilisé' });
     }
 
-    db.prepare(`
+    await db.run(`
       UPDATE users
       SET
         email = ?,
@@ -174,7 +174,7 @@ const updateAdminUser = (req, res) => {
         age = ?,
         phone = ?
       WHERE id = ? AND role = 'user'
-    `).run(
+    `,
       email,
       name,
       first_name || null,
@@ -185,11 +185,11 @@ const updateAdminUser = (req, res) => {
       id
     );
 
-    const user = db.prepare(`
+    const user = await db.get(`
       SELECT id, email, name, first_name, last_name, birth_date, age, phone, created_at
       FROM users
       WHERE id = ?
-    `).get(id);
+    `, id);
 
     res.json({ user });
   } catch (error) {

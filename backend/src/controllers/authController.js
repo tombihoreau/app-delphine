@@ -34,20 +34,20 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existingUser = await db.get('SELECT id FROM users WHERE email = ?', email);
     if (existingUser) {
       return res.status(400).json({ error: 'Email déjà utilisé' });
     }
 
     const resolvedPassword = password || ('temp' + Math.random().toString(36).substring(2, 8));
     const hashedPassword = await bcrypt.hash(resolvedPassword, 10);
-    const passwordSet = password ? 1 : 0;
+    const passwordSet = Boolean(password);
 
-    const insertUser = db.prepare(`
+    const user = await db.get(`
       INSERT INTO users (email, password_hash, name, first_name, last_name, birth_date, age, weight, phone, role, password_set)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?)
-    `);
-    const result = insertUser.run(
+      RETURNING id, email, name, first_name, last_name, birth_date, age, weight, phone, password_set
+    `,
       email,
       hashedPassword,
       fullName,
@@ -59,20 +59,6 @@ const createUser = async (req, res) => {
       phone || null,
       passwordSet
     );
-    const userId = result.lastInsertRowid;
-
-    const user = {
-      id: userId,
-      email,
-      name: fullName,
-      first_name: first_name || null,
-      last_name: last_name || null,
-      birth_date: birth_date || null,
-      age: resolvedAge || null,
-      weight,
-      phone: phone || null,
-      password_set: Boolean(passwordSet)
-    };
 
     res.status(201).json({ user });
   } catch (error) {
@@ -89,7 +75,7 @@ const checkEmail = async (req, res) => {
   }
 
   try {
-    const user = db.prepare('SELECT id, email, name, role, password_set FROM users WHERE email = ?').get(email);
+    const user = await db.get('SELECT id, email, name, role, password_set FROM users WHERE email = ?', email);
     if (!user) {
       return res.status(404).json({ error: 'Email non trouvé' });
     }
@@ -109,7 +95,7 @@ const login = async (req, res) => {
   }
 
   try {
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = await db.get('SELECT * FROM users WHERE email = ?', email);
     if (!user) {
       return res.status(401).json({ error: 'Email non trouvé' });
     }
@@ -166,12 +152,11 @@ const setPassword = async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const updateUser = db.prepare(`
+    await db.run(`
       UPDATE users 
-      SET password_hash = ?, password_set = 1 
+      SET password_hash = ?, password_set = TRUE 
       WHERE id = ?
-    `);
-    updateUser.run(hashedPassword, userId);
+    `, hashedPassword, userId);
 
     res.json({ message: 'Mot de passe défini avec succès' });
   } catch (error) {
