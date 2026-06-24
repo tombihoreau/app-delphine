@@ -177,7 +177,7 @@ const WeeklyMetricChart = ({ title, data, type, weekLabel, onPreviousWeek, onNex
         <div className="mb-2 flex items-center justify-between text-brand-tamarillo">
           <button type="button" onClick={onPreviousWeek} aria-label="Semaine précédente"><ChevronLeft /></button>
           <div className="text-center">
-            <h2 className="text-base font-normal">{title}</h2>
+            <h2 className="text-base font-light">{title}</h2>
             <p className="mt-1 text-[0.68rem] text-brand-tamarillo/80">{weekLabel}</p>
           </div>
           <button type="button" onClick={onNextWeek} aria-label="Semaine suivante"><ChevronRight /></button>
@@ -224,7 +224,7 @@ const WeeklyMetricChart = ({ title, data, type, weekLabel, onPreviousWeek, onNex
       <div className="mb-2 flex items-center justify-between text-brand-tamarillo">
         <button type="button" onClick={onPreviousWeek} aria-label="Semaine précédente"><ChevronLeft /></button>
         <div className="text-center">
-          <h2 className="text-base font-normal">{title}</h2>
+          <h2 className="text-base font-light">{title}</h2>
           <p className="mt-1 text-[0.68rem] text-brand-tamarillo/80">{weekLabel}</p>
         </div>
         <button type="button" onClick={onNextWeek} aria-label="Semaine suivante"><ChevronRight /></button>

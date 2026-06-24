@@ -24,6 +24,14 @@ const FieldLabel = ({ children }) => (
 
 const fieldClass = 'h-[43px] w-full rounded-md border border-brand-brown/35 bg-transparent px-4 text-sm text-brand-brown placeholder:text-brand-brown/35 outline-none focus:border-brand-tamarillo'
 
+const getTodayKey = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const CoachAssignSessionPage = () => {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -54,6 +62,11 @@ const CoachAssignSessionPage = () => {
     e.preventDefault()
     setError('')
 
+    if (form.scheduled_date < getTodayKey()) {
+      setError("La date d'attribution ne peut pas être passée")
+      return
+    }
+
     try {
       await api.post('/api/admin/assignments', {
         ...form,
@@ -71,7 +84,7 @@ const CoachAssignSessionPage = () => {
     <CoachLayout headerLabel="Coach_ajout programme" title="" compactBottom>
       {error && <p className="status-banner bg-[#fdeaea] text-danger">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="flex min-h-[calc(100vh-7rem)] flex-col">
+      <form onSubmit={handleSubmit} className="flex min-h-[calc(100vh-5rem)] flex-col">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -110,6 +123,7 @@ const CoachAssignSessionPage = () => {
             <FieldLabel>Ajouter la date</FieldLabel>
             <input
               type="date"
+              min={getTodayKey()}
               value={form.scheduled_date}
               onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })}
               className={fieldClass}

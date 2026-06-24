@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
+import MoodSmiley from '../components/MoodSmiley'
+import SunIcon from '../components/SunIcon'
 import api from '../services/api'
 
 const ChevronLeft = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="m15 18-6-6 6-6" />
   </svg>
 )
@@ -23,13 +25,28 @@ const CalendarIcon = () => (
   </svg>
 )
 
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="m5 12 4 4L19 6" />
+  </svg>
+)
+
 const formatDate = (date) => {
   if (!date) return ''
   return new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
-    year: '2-digit'
+    year: 'numeric'
   })
+}
+
+const getReferenceDate = (assignments) => {
+  const today = new Date().toISOString().slice(0, 10)
+  const upcoming = assignments
+    .filter((assignment) => assignment.scheduled_date >= today)
+    .sort((first, second) => first.scheduled_date.localeCompare(second.scheduled_date))
+
+  return upcoming[0]?.scheduled_date || assignments[0]?.scheduled_date || ''
 }
 
 const CoachProgramDetailPage = () => {
@@ -54,6 +71,7 @@ const CoachProgramDetailPage = () => {
   const program = detail?.program
   const steps = useMemo(() => detail?.steps || [], [detail])
   const assignments = useMemo(() => detail?.assignments || [], [detail])
+  const referenceDate = useMemo(() => getReferenceDate(assignments), [assignments])
 
   return (
     <CoachLayout title="" compactBottom>
@@ -62,7 +80,7 @@ const CoachProgramDetailPage = () => {
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="mb-5 inline-flex items-center gap-1 text-sm text-brand-tamarillo"
+        className="mb-5 inline-flex items-center gap-1 text-base text-brand-tamarillo"
       >
         <ChevronLeft />
         Retour
@@ -74,103 +92,111 @@ const CoachProgramDetailPage = () => {
         </div>
       ) : (
         <>
-          <header className="mb-7">
-            {program.banner_image ? (
-              <img
-                src={program.banner_image}
-                alt=""
-                className="mb-5 h-40 w-full rounded-md object-cover"
-              />
-            ) : null}
-
+          <header className="mb-10">
             <h1 className="font-display text-3xl font-normal leading-tight text-brand-tamarillo">
               {program.name}
             </h1>
-            <div className="mt-4 flex flex-wrap gap-2 text-sm text-brand-tamarillo">
-	              <span className="inline-flex items-center gap-1 rounded-full border border-brand-tamarillo px-3 py-1">
-	                {program.category}
-	              </span>
-	              <span className="inline-flex items-center gap-1 rounded-full border border-brand-tamarillo px-3 py-1">
-	                <ClockIcon />{program.session_minutes || 35} min
-	              </span>
-	            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-brand-tamarillo">
+              {referenceDate ? (
+                <span className="inline-flex items-center gap-1">
+                  <CalendarIcon />{formatDate(referenceDate)}
+                </span>
+              ) : null}
+              <span className="inline-flex items-center gap-1">
+                <ClockIcon />{program.session_minutes || 35} min
+              </span>
+            </div>
+
+            {program.category ? (
+              <div className="mt-3">
+                <span className="inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-sm text-brand-tamarillo">
+                  {program.category}
+                </span>
+              </div>
+            ) : null}
           </header>
 
-	          <section className="mb-8 rounded-md bg-brand-peach/45 p-4">
-	            <h2 className="font-display text-xl font-normal text-brand-tamarillo">Les conseils</h2>
-	            <p className="mt-2 text-sm leading-5 text-brand-brown">
-	              {program.coach_notes || 'Aucun conseil renseigné pour ce programme.'}
-	            </p>
-	          </section>
+          <section className="mb-10">
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-light text-brand-brown">
+              <SunIcon className="h-9 w-9" />
+              Le programme de la séance
+            </h2>
 
-	          <button
-	            type="button"
-	            onClick={() => navigate(`/admin/programs/${programId}/assign`)}
-	            className="mb-8 w-full rounded-full bg-brand-tamarillo px-5 py-4 text-lg font-bold text-brand-beige shadow-float"
-	          >
-	            Attribuer le programme
-	          </button>
-
-	          <section className="mb-8">
-            <h2 className="mb-4 text-lg font-normal text-brand-tamarillo">Description de la séance</h2>
-            <div className="space-y-5">
-              {steps.length === 0 ? (
-                <p className="rounded-md border border-brand-tamarillo/30 p-4 text-sm text-brand-brown">
-                  Aucune étape renseignée.
-                </p>
-              ) : (
-                steps.map((step, index) => (
+            {steps.length === 0 ? (
+              <p className="rounded-md border border-brand-tamarillo/30 p-4 text-sm text-brand-brown">
+                Aucune étape renseignée.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {steps.map((step) => (
                   <article key={step.id} className="text-brand-brown">
-                    <div className="mb-2 flex items-end gap-3">
-                      <h3 className="shrink-0 italic text-brand-tamarillo">Etape {index + 1}</h3>
-                      <div className="mb-1 h-px flex-1 bg-[#df9c92]" />
+                    <div className="mb-3 flex items-end justify-between gap-4 border-b border-brand-tamarillo/35 pb-1 text-brand-tamarillo">
+                      <h3 className="text-lg font-light italic text-[#a53524]">{step.name}</h3>
+                      {step.duration_minutes ? (
+                        <span className="shrink-0 text-base text-[#a53524]">
+                          • {step.duration_minutes} min
+                        </span>
+                      ) : null}
                     </div>
-                    <p className="font-medium">{step.name}</p>
-                    <p className="mt-1 text-sm leading-5 text-brand-brown/75">
+                    <p className="text-base leading-6 text-brand-brown">
                       {step.description || 'Aucune description renseignée.'}
                     </p>
                   </article>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="relative mb-10 rounded-md bg-brand-peach/35 px-4 py-4">
+            <h2 className="text-xl font-light text-brand-tamarillo">Mes petits conseils</h2>
+            <p className="mt-2 pr-10 text-sm leading-5 text-brand-brown">
+              {program.coach_notes || 'Aucun conseil renseigné pour ce programme.'}
+            </p>
+            <MoodSmiley value={5} alt="" className="absolute -right-1 -top-6 h-16 w-16" />
           </section>
 
           <section>
-            <h2 className="mb-4 text-lg font-normal text-brand-tamarillo">Dernières attributions</h2>
-            <div className="space-y-3">
-              {assignments.length === 0 ? (
-                <p className="rounded-md border border-brand-tamarillo/30 p-4 text-sm text-brand-brown">
-                  Ce programme n’a pas encore été attribué.
-                </p>
-              ) : (
-                assignments.map((assignment) => (
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-light text-brand-brown">
+              <SunIcon className="h-9 w-9" />
+              Attribution du programme
+            </h2>
+
+            {assignments.length === 0 ? (
+              <p className="rounded-md border border-brand-tamarillo/30 p-4 text-sm text-brand-brown">
+                Ce programme n’a pas encore été attribué.
+              </p>
+            ) : (
+              <div className="divide-y divide-brand-tamarillo/35">
+                {assignments.map((assignment) => (
                   <button
                     key={assignment.id}
                     type="button"
                     onClick={() => navigate(`/admin/clients/${assignment.user_id}`)}
-                    className="w-full rounded-md border border-brand-tamarillo/50 p-3 text-left text-brand-tamarillo"
+                    className="flex w-full items-center justify-between gap-3 py-4 text-left text-brand-tamarillo"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-base text-brand-brown">{assignment.user_name}</p>
-                        <p className="mt-1 inline-flex items-center gap-1 text-xs">
-                          <CalendarIcon />{formatDate(assignment.scheduled_date)}
-                        </p>
-                      </div>
-                      {assignment.feedback_id ? (
-                        <span className="rounded-full border border-[#58a56d] bg-[#e8f7ea] px-3 py-1 text-xs text-[#34824a]">
-                          Réalisé
-                        </span>
-                      ) : (
-                        <span className="rounded-full border border-brand-tamarillo px-3 py-1 text-xs">
-                          Prévu
-                        </span>
-                      )}
-                    </div>
+                    <span className="min-w-0 flex-1 truncate text-xl text-brand-brown">
+                      {assignment.user_name}
+                      {assignment.feedback_id ? '' : ` - ${formatDate(assignment.scheduled_date)}`}
+                    </span>
+                    {assignment.feedback_id ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#6bbd7d] bg-[#e6f5e7] px-3 py-1 text-xs text-[#3d8a4c]">
+                        <CheckIcon />
+                        {formatDate(assignment.scheduled_date)}
+                      </span>
+                    ) : null}
                   </button>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => navigate(`/admin/programs/${programId}/assign`)}
+              className="mt-5 w-full rounded-md bg-brand-tamarillo px-5 py-3 text-base font-semibold text-brand-beige"
+            >
+              Attribuer à une nouvelle personne
+            </button>
           </section>
         </>
       )}

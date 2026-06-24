@@ -8,7 +8,8 @@ const emptyForm = {
   last_name: '',
   first_name: '',
   phone: '',
-  birth_date: ''
+  birth_date: '',
+  offer_type: ''
 }
 
 const splitName = (name = '') => {
@@ -48,7 +49,8 @@ const CoachClientEditPage = () => {
         first_name: user.first_name || fallbackNames.first_name,
         last_name: user.last_name || fallbackNames.last_name,
         phone: user.phone || '',
-        birth_date: user.birth_date || ''
+        birth_date: user.birth_date || '',
+        offer_type: user.offer_type || ''
       })
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors du chargement du client')

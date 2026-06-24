@@ -44,7 +44,7 @@ const getAdminPrograms = async (req, res) => {
       LEFT JOIN program_assignments pa ON pa.program_id = p.id
       LEFT JOIN workouts w ON w.program_id = p.id
       GROUP BY p.id
-      ORDER BY p.name ASC
+      ORDER BY p.id DESC
     `);
 
     res.json(programs);
@@ -369,11 +369,32 @@ const getAdminAssignmentDetail = async (req, res) => {
           af.pain_notes as feedback_pain_notes,
           af.comments as feedback_comments,
           af.duration_minutes as feedback_duration_minutes,
-          af.completed_at as feedback_completed_at
+          af.completed_at as feedback_completed_at,
+          dc.mood as checkin_mood,
+          dc.energy as checkin_energy,
+          dc.sleep_quality as checkin_sleep_quality,
+          dc.stress as checkin_stress
         FROM program_assignments pa
         JOIN programs p ON p.id = pa.program_id
         JOIN users u ON u.id = pa.user_id
         LEFT JOIN assignment_feedback af ON af.assignment_id = pa.id AND af.user_id = pa.user_id
+        LEFT JOIN LATERAL (
+          SELECT *
+          FROM daily_checkins dc
+          WHERE dc.user_id = pa.user_id
+            AND dc.checkin_date IN (
+              pa.scheduled_date,
+              COALESCE(TO_CHAR(af.completed_at, 'YYYY-MM-DD'), pa.scheduled_date)
+            )
+          ORDER BY
+            CASE
+              WHEN af.completed_at IS NOT NULL
+                AND dc.checkin_date = TO_CHAR(af.completed_at, 'YYYY-MM-DD')
+              THEN 0
+              ELSE 1
+            END
+          LIMIT 1
+        ) dc ON TRUE
         WHERE pa.id = ?
       `,
       id

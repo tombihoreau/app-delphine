@@ -10,7 +10,8 @@ const CoachClientCreatePage = () => {
     last_name: '',
     first_name: '',
     phone: '',
-    birth_date: ''
+    birth_date: '',
+    offer_type: ''
   })
   const [error, setError] = useState('')
 
@@ -23,7 +24,8 @@ const CoachClientCreatePage = () => {
         ...form,
         name: `${form.first_name} ${form.last_name}`.trim()
       })
-      navigate('/admin/clients')
+      window.sessionStorage.setItem('coachClientsSuccess', 'Cliente ajoutée')
+      navigate('/admin/clients', { state: { success: 'Cliente ajoutée' } })
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors de la création du client')
     }

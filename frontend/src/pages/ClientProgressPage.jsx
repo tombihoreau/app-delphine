@@ -33,6 +33,15 @@ const EditIcon = () => (
   </svg>
 )
 
+const GiftIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M4 10h16v10H4z" />
+    <path d="M12 10v10M4 14h16" />
+    <path d="M12 10H8.5a2.5 2.5 0 1 1 2.2-3.7L12 10Z" />
+    <path d="M12 10h3.5a2.5 2.5 0 1 0-2.2-3.7L12 10Z" />
+  </svg>
+)
+
 const moodLabel = (value) => {
   if (value >= 5) return 'Très bien'
   if (value >= 4) return 'Bien'
@@ -90,7 +99,7 @@ const SectionHeading = ({ title, weekLabel, onPrevious, onNext }) => (
       <Chevron direction="left" />
     </button>
     <div className="text-center">
-      <h2 className="text-xl font-medium text-brand-brown">{title}</h2>
+      <h2 className="text-xl font-light text-brand-brown">{title}</h2>
       <p className="mt-1 text-xs italic text-brand-brown">{weekLabel}</p>
     </div>
     <button type="button" onClick={onNext} aria-label="Semaine suivante">
@@ -293,7 +302,7 @@ const ClientProgressPage = () => {
               <article className="rounded-md bg-brand-peach/35 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-medium">{featuredSession.program_name}</h3>
+                    <h3 className="text-base font-light">{featuredSession.program_name}</h3>
                     <div className="mt-1 flex items-center gap-1 text-xs text-brand-tamarillo">
                       <ClockIcon />
                       <span>{featuredSession.session_minutes || 35} min</span>
@@ -341,12 +350,16 @@ const ClientProgressPage = () => {
           </div>
 
           <section>
-            <h2 className="mb-4 font-display text-xl font-normal text-brand-tamarillo">Mes informations</h2>
+            <h2 className="mb-4 text-xl font-light text-brand-tamarillo">Mes informations</h2>
             <article className="rounded-md bg-brand-peach/35 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-sm leading-5 text-brand-brown">
                   <p>{user?.name || ''} {user?.age ? `${user.age} ans` : ''}</p>
-                  <p>{user?.email || ''}{user?.phone ? ` • ${user.phone}` : ''}</p>
+                  <p className="text-[#902316]">{user?.email || ''}{user?.phone ? ` • ${user.phone}` : ''}</p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-[#902316]">
+                    <GiftIcon />
+                    {user?.offer_type || 'Type d’offre'}
+                  </p>
                 </div>
                 <button
                   type="button"

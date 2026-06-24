@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import api from '../services/api'
 import SunIcon from '../components/SunIcon'
 import SessionDetailView from '../components/SessionDetailView'
+import flameIcon from '../assets/brand/flamme.svg'
 
 const formatDateKey = (date) => {
   const current = new Date(date)
@@ -14,7 +15,7 @@ const formatDateKey = (date) => {
 
 const SliderQuestion = ({ title, subtitle, labels, value, onChange }) => (
   <section className="mb-10">
-    <h2 className="text-lg font-medium text-brand-brown">{title}</h2>
+    <h2 className="text-lg font-light text-brand-brown">{title}</h2>
     <p className="mt-1 text-xs italic text-brand-brown/80">{subtitle}</p>
     <div className="mt-8">
       <div className="relative h-5">
@@ -48,7 +49,7 @@ const CompletionScreen = ({ onContinue }) => (
           Félicitations !<br />Séance terminé
         </h1>
         <p className="mt-3 text-sm italic text-brand-brown">Ajoute ton ressenti durant la séance</p>
-        <div className="mt-16 text-8xl" aria-hidden="true">🔥</div>
+        <img src={flameIcon} alt="" className="mt-16 h-40 w-auto" aria-hidden="true" />
       </main>
       <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
         <div className="mx-auto max-w-md">

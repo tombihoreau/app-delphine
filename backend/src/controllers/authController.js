@@ -24,7 +24,7 @@ const register = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  const { name, email, age, weight, password, first_name, last_name, birth_date, phone } = req.body;
+  const { name, email, age, weight, password, first_name, last_name, birth_date, phone, offer_type } = req.body;
 
   const fullName = name || [first_name, last_name].filter(Boolean).join(' ').trim();
   const resolvedAge = age || computeAgeFromBirthDate(birth_date);
@@ -44,9 +44,9 @@ const createUser = async (req, res) => {
     const passwordSet = Boolean(password);
 
     const user = await db.get(`
-      INSERT INTO users (email, password_hash, name, first_name, last_name, birth_date, age, weight, phone, role, password_set)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?)
-      RETURNING id, email, name, first_name, last_name, birth_date, age, weight, phone, password_set
+      INSERT INTO users (email, password_hash, name, first_name, last_name, birth_date, age, weight, phone, offer_type, role, password_set)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?)
+      RETURNING id, email, name, first_name, last_name, birth_date, age, weight, phone, offer_type, password_set
     `,
       email,
       hashedPassword,
@@ -57,6 +57,7 @@ const createUser = async (req, res) => {
       resolvedAge || null,
       weight || null,
       phone || null,
+      offer_type || null,
       passwordSet
     );
 

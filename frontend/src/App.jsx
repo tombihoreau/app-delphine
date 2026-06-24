@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from './store/useAuthStore'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
@@ -13,6 +13,7 @@ import CoachCalendarPage from './pages/CoachCalendarPage'
 import CoachClientCreatePage from './pages/CoachClientCreatePage'
 import CoachClientEditPage from './pages/CoachClientEditPage'
 import CoachClientDetailPage from './pages/CoachClientDetailPage'
+import CoachClientHistoryPage from './pages/CoachClientHistoryPage'
 import CoachAssignSessionPage from './pages/CoachAssignSessionPage'
 import CoachProgramAssignPage from './pages/CoachProgramAssignPage'
 import CoachSessionPage from './pages/CoachSessionPage'
@@ -23,25 +24,6 @@ import ClientMoodPage from './pages/ClientMoodPage'
 import ClientDailyStatePage from './pages/ClientDailyStatePage'
 import ClientSessionPage from './pages/ClientSessionPage'
 import BottomNav from './components/BottomNav'
-
-const DebugLogoutButton = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const logout = useAuthStore((state) => state.logout)
-  const location = useLocation()
-
-  if (!isAuthenticated) return null
-  if (location.pathname === '/set-password') return null
-
-  return (
-    <button
-      type="button"
-      onClick={logout}
-      className="fixed right-3 top-3 z-50 rounded-full border border-brand-tamarillo bg-brand-beige/95 px-3 py-1 text-xs font-semibold text-brand-tamarillo shadow-sm"
-    >
-      Déconnexion
-    </button>
-  )
-}
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -67,7 +49,6 @@ const ClientRoute = ({ children }) => {
 function App() {
   return (
     <div className="min-h-screen bg-dark text-ink">
-      <DebugLogoutButton />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Navigate to="/login" />} />
@@ -88,6 +69,7 @@ function App() {
         <Route path="/admin/clients" element={<AdminRoute><CoachClientsPage /></AdminRoute>} />
         <Route path="/admin/clients/new" element={<AdminRoute><CoachClientCreatePage /></AdminRoute>} />
         <Route path="/admin/clients/:id/edit" element={<AdminRoute><CoachClientEditPage /></AdminRoute>} />
+        <Route path="/admin/clients/:id/history" element={<AdminRoute><CoachClientHistoryPage /></AdminRoute>} />
         <Route path="/admin/clients/:id" element={<AdminRoute><CoachClientDetailPage /></AdminRoute>} />
         <Route path="/admin/clients/:id/assign" element={<AdminRoute><CoachAssignSessionPage /></AdminRoute>} />
         <Route path="/admin/calendar" element={<AdminRoute><CoachCalendarPage /></AdminRoute>} />

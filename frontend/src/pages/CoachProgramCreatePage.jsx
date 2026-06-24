@@ -26,6 +26,7 @@ const CoachProgramCreatePage = () => {
       })
 
       setCreatedProgram(response.data)
+      window.sessionStorage.setItem('coachProgramsSuccess', 'Programme ajouté')
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors de la création du programme')
     }
@@ -65,7 +66,7 @@ const CoachProgramCreatePage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/admin/programs')}
+                onClick={() => navigate('/admin/programs', { state: { success: 'Programme ajouté' } })}
                 className="mt-4 w-full rounded-md border border-brand-tamarillo px-5 py-4 text-lg font-bold text-brand-tamarillo"
               >
                 Non

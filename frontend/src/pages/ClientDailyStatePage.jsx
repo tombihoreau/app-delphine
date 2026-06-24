@@ -6,7 +6,7 @@ import BackButton from '../components/BackButton'
 
 const SliderQuestion = ({ title, subtitle, labels, value, onChange }) => (
   <section className="mb-14">
-    <h2 className="text-xl font-medium text-brand-brown">{title}</h2>
+    <h2 className="text-xl font-light text-brand-brown">{title}</h2>
     <p className="mt-1 text-sm italic text-brand-brown/80">{subtitle}</p>
     <div className="mt-10">
       <div className="relative h-5">
@@ -35,9 +35,10 @@ const SliderQuestion = ({ title, subtitle, labels, value, onChange }) => (
 const ClientDailyStatePage = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [energy, setEnergy] = useState(3)
-  const [stress, setStress] = useState(3)
-  const [sleepQuality, setSleepQuality] = useState(3)
+  const existingCheckin = location.state?.checkin || null
+  const [energy, setEnergy] = useState(existingCheckin?.energy ? 6 - existingCheckin.energy : 3)
+  const [stress, setStress] = useState(existingCheckin?.stress || 3)
+  const [sleepQuality, setSleepQuality] = useState(existingCheckin?.sleep_quality ? 6 - existingCheckin.sleep_quality : 3)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -53,7 +54,7 @@ const ClientDailyStatePage = () => {
         stress,
         sleep_quality: 6 - sleepQuality
       })
-      navigate('/progres')
+      navigate('/')
     } catch (err) {
       setError("Impossible d'enregistrer tes réponses")
     } finally {

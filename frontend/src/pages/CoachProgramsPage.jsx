@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CoachLayout from "../components/CoachLayout";
 import api from "../services/api";
 
@@ -122,16 +122,41 @@ const normalizeSearchValue = (value = "") =>
 
 const CoachProgramsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [programs, setPrograms] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(location.state?.success || "");
   const [programToDelete, setProgramToDelete] = useState(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const storedSuccess = window.sessionStorage.getItem("coachProgramsSuccess");
+    const nextSuccess = location.state?.success || storedSuccess;
+
+    if (!nextSuccess) return;
+
+    setSuccess(nextSuccess);
+    window.sessionStorage.removeItem("coachProgramsSuccess");
+
+    if (location.state?.success) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!success) return undefined;
+
+    const timeout = window.setTimeout(() => {
+      setSuccess("");
+    }, 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, [success]);
 
   const filteredPrograms = useMemo(() => {
     const normalizedQuery = normalizeSearchValue(query);
@@ -258,7 +283,7 @@ const CoachProgramsPage = () => {
               >
                 <ChevronIcon open={isExpanded} />
 
-                <h2 className="min-w-0 flex-1 truncate text-lg font-normal">
+                <h2 className="min-w-0 flex-1 truncate text-lg font-light">
                   {program.name}
                 </h2>
               </button>
@@ -326,7 +351,7 @@ const CoachProgramsPage = () => {
         <div className="fixed inset-0 z-[60] flex items-end bg-black/35">
           <div className="w-full rounded-t-[28px] bg-brand-beige px-6 pb-10 pt-8 text-center shadow-float">
             <div className="mx-auto max-w-md">
-              <h2 className="font-display text-2xl font-normal text-brand-tamarillo">
+              <h2 className="text-2xl font-light text-brand-tamarillo">
                 Supprimer ce programme ?
               </h2>
               <p className="mx-auto mt-3 max-w-[300px] text-sm leading-5 text-brand-brown">

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import MoodSmiley from '../components/MoodSmiley'
 import SunIcon from '../components/SunIcon'
 import BackButton from '../components/BackButton'
@@ -14,7 +14,9 @@ const moods = [
 
 const ClientMoodPage = () => {
   const navigate = useNavigate()
-  const [selectedMood, setSelectedMood] = useState(5)
+  const location = useLocation()
+  const existingCheckin = location.state?.checkin || null
+  const [selectedMood, setSelectedMood] = useState(location.state?.mood || 5)
   const currentMood = moods.find((mood) => mood.value === selectedMood) || moods[0]
 
   return (
@@ -50,10 +52,10 @@ const ClientMoodPage = () => {
           <div className="mx-auto max-w-md">
             <button
               type="button"
-              onClick={() => navigate('/mood/details', { state: { mood: selectedMood } })}
+              onClick={() => navigate('/mood/details', { state: { mood: selectedMood, checkin: existingCheckin } })}
               className="w-full rounded-full bg-brand-tamarillo px-6 py-4 text-base font-bold text-brand-beige"
             >
-              Ajouter mon mood
+              {existingCheckin ? 'Modifier mon mood' : 'Ajouter mon mood'}
             </button>
           </div>
         </div>

@@ -29,6 +29,7 @@ const getAllUsers = async (req, res) => {
         u.age,
         u.weight,
         u.phone,
+        u.offer_type,
         u.created_at,
         COUNT(pa.id)::INTEGER as assignment_count,
         (
@@ -74,6 +75,7 @@ const getAdminUserDetail = async (req, res) => {
         age,
         weight,
         phone,
+        offer_type,
         created_at
       FROM users
       WHERE id = ? AND role = 'user'
@@ -109,8 +111,7 @@ const getAdminUserDetail = async (req, res) => {
       JOIN programs p ON p.id = pa.program_id
       LEFT JOIN assignment_feedback af ON af.assignment_id = pa.id AND af.user_id = pa.user_id
       WHERE pa.user_id = ? AND (pa.scheduled_date < ? OR af.id IS NOT NULL)
-      ORDER BY COALESCE(af.completed_at, pa.scheduled_date) DESC, pa.start_time DESC
-      LIMIT 8
+      ORDER BY COALESCE(af.completed_at, pa.scheduled_date::TIMESTAMPTZ) DESC, pa.start_time DESC
     `, id, today);
 
     const checkins = await db.all(`
@@ -144,7 +145,7 @@ const getAdminUserDetail = async (req, res) => {
 
 const updateAdminUser = async (req, res) => {
   const { id } = req.params;
-  const { email, first_name, last_name, birth_date, phone } = req.body;
+  const { email, first_name, last_name, birth_date, phone, offer_type } = req.body;
   const name = [first_name, last_name].filter(Boolean).join(' ').trim();
   const age = computeAgeFromBirthDate(birth_date);
 
@@ -172,7 +173,8 @@ const updateAdminUser = async (req, res) => {
         last_name = ?,
         birth_date = ?,
         age = ?,
-        phone = ?
+        phone = ?,
+        offer_type = ?
       WHERE id = ? AND role = 'user'
     `,
       email,
@@ -182,11 +184,12 @@ const updateAdminUser = async (req, res) => {
       birth_date || null,
       age,
       phone || null,
+      offer_type || null,
       id
     );
 
     const user = await db.get(`
-      SELECT id, email, name, first_name, last_name, birth_date, age, phone, created_at
+      SELECT id, email, name, first_name, last_name, birth_date, age, phone, offer_type, created_at
       FROM users
       WHERE id = ?
     `, id);

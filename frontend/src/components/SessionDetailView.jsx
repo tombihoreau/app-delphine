@@ -32,10 +32,55 @@ export const difficultyLabel = (value) => ({
   5: 'Effort maximal'
 }[Number(value)] || 'Modéré')
 
+const moodLabel = (value) => ({
+  5: 'Très bien',
+  4: 'Bien',
+  3: 'Neutre',
+  2: 'Fatigué',
+  1: 'En colère'
+}[Number(value)] || 'Non renseigné')
+
+const fatigueLabel = (value) => ({
+  5: 'Énergique',
+  4: 'En forme',
+  3: 'Moyen',
+  2: 'Fatigué',
+  1: 'Très fatigué'
+}[Number(value)] || 'Non renseigné')
+
+const stressLabel = (value) => ({
+  1: 'Calme',
+  2: 'Un peu',
+  3: 'Moyen',
+  4: 'Stressé',
+  5: 'Très stressé'
+}[Number(value)] || 'Non renseigné')
+
+const sleepLabel = (value) => ({
+  5: 'Excellent',
+  4: 'Bon',
+  3: 'Correct',
+  2: 'Mauvais',
+  1: 'Très mauvais'
+}[Number(value)] || 'Non renseigné')
+
 export const chipStyle = (tone) => {
   if (tone === 'green') return 'border-[#6bbd7d] bg-[#e6f5e7] text-[#3d8a4c]'
   if (tone === 'peach') return 'border-[#d98369] bg-brand-peach/60 text-brand-tamarillo'
   return 'border-[#b9adb4] bg-[#efe9ee] text-[#6c6370]'
+}
+
+const metricTone = (value, inverse = false) => {
+  const score = Number(value)
+  if (!score) return chipStyle('neutral')
+  if (inverse) {
+    if (score <= 2) return chipStyle('green')
+    if (score === 3) return chipStyle('neutral')
+    return chipStyle('peach')
+  }
+  if (score >= 4) return chipStyle('green')
+  if (score === 3) return chipStyle('neutral')
+  return chipStyle('peach')
 }
 
 const SessionHeader = ({ assignment, completed }) => (
@@ -64,7 +109,7 @@ const SessionHeader = ({ assignment, completed }) => (
 const ProgramContent = ({ assignment, steps }) => (
   <>
     <section className="mb-9">
-      <h2 className="mb-5 flex items-center gap-3 text-xl font-medium text-brand-brown">
+      <h2 className="mb-5 flex items-center gap-3 text-xl font-light text-brand-brown">
         <SunIcon className="h-8 w-8" />
         Le programme de la séance
       </h2>
@@ -92,7 +137,7 @@ const ProgramContent = ({ assignment, steps }) => (
 
     {assignment.coach_notes ? (
       <section className="relative rounded-md bg-brand-peach/35 p-4">
-        <h2 className="font-display text-xl font-normal text-brand-tamarillo">Mes petits conseils</h2>
+        <h2 className="text-xl font-light text-brand-tamarillo">Mes petits conseils</h2>
         <p className="mt-2 pr-10 text-sm leading-5 text-brand-brown">{assignment.coach_notes}</p>
         <MoodSmiley value={5} alt="" className="absolute -right-1 -top-6 h-16 w-16" />
       </section>
@@ -100,32 +145,65 @@ const ProgramContent = ({ assignment, steps }) => (
   </>
 )
 
-const FeedbackCard = ({ assignment }) => (
-  <section className="mt-8 rounded-md border border-brand-tamarillo p-4">
-    <p className="mb-4 text-center text-sm italic text-brand-brown">Mon ressenti de la séance</p>
+const FeedbackCard = ({ assignment }) => {
+  const hasCheckin = assignment.checkin_mood || assignment.checkin_energy || assignment.checkin_sleep_quality || assignment.checkin_stress
 
-    <div className="divide-y divide-brand-brown/10 text-sm text-brand-tamarillo">
-      <div className="flex items-center justify-between gap-3 py-3">
-        <span>Effort ressenti</span>
-        <span className={`rounded-full border px-3 py-1 text-xs ${chipStyle('peach')}`}>
-          {difficultyLabel(assignment.feedback_difficulty)}
-        </span>
+  return (
+    <section className="mt-8 rounded-md border border-brand-tamarillo p-4">
+      <p className="mb-4 text-center text-sm italic text-brand-brown">Mon ressenti de la séance</p>
+
+      {assignment.checkin_mood ? (
+        <div className="mb-4 flex flex-col items-center">
+          <MoodSmiley value={assignment.checkin_mood} className="h-24 w-24" />
+          <p className="mt-1 text-sm text-brand-tamarillo">{moodLabel(assignment.checkin_mood)}</p>
+        </div>
+      ) : null}
+
+      <div className="divide-y divide-brand-brown/10 text-sm text-brand-tamarillo">
+        <div className="flex items-center justify-between gap-3 py-3">
+          <span>Effort ressenti</span>
+          <span className={`rounded-full border px-3 py-1 text-xs ${chipStyle('peach')}`}>
+            {difficultyLabel(assignment.feedback_difficulty)}
+          </span>
+        </div>
+        <div className="py-3">
+          <p>Douleurs</p>
+          <p className="mt-1 text-xs leading-4 text-brand-brown/80">
+            {assignment.feedback_pain_notes || 'Aucune douleur ajoutée'}
+          </p>
+        </div>
+        <div className="py-3">
+          <p>Commentaires</p>
+          <p className="mt-1 text-xs leading-4 text-brand-brown/80">
+            {assignment.feedback_comments || 'Aucun commentaire ajouté'}
+          </p>
+        </div>
+        {hasCheckin ? (
+          <>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span>Niveau de fatigue</span>
+              <span className={`rounded-full border px-3 py-1 text-xs ${metricTone(assignment.checkin_energy)}`}>
+                {fatigueLabel(assignment.checkin_energy)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span>Niveau de stress</span>
+              <span className={`rounded-full border px-3 py-1 text-xs ${metricTone(assignment.checkin_stress, true)}`}>
+                {stressLabel(assignment.checkin_stress)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span>Sommeil</span>
+              <span className={`rounded-full border px-3 py-1 text-xs ${metricTone(assignment.checkin_sleep_quality)}`}>
+                {sleepLabel(assignment.checkin_sleep_quality)}
+              </span>
+            </div>
+          </>
+        ) : null}
       </div>
-      <div className="py-3">
-        <p>Douleurs</p>
-        <p className="mt-1 text-xs leading-4 text-brand-brown/80">
-          {assignment.feedback_pain_notes || 'Aucune douleur ajoutée'}
-        </p>
-      </div>
-      <div className="py-3">
-        <p>Commentaires</p>
-        <p className="mt-1 text-xs leading-4 text-brand-brown/80">
-          {assignment.feedback_comments || 'Aucun commentaire ajouté'}
-        </p>
-      </div>
-    </div>
-  </section>
-)
+    </section>
+  )
+}
 
 const SessionDetailView = ({
   assignment,

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../services/api'
-import CoachBottomAction, { coachPrimaryActionClass } from './CoachBottomAction'
+import { coachPrimaryActionClass } from './CoachBottomAction'
 
 export const initialProgramStep = {
   name: '',
@@ -58,6 +58,33 @@ const SelectArrow = () => (
   </svg>
 )
 
+const TrashIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.9"
+  >
+    <path d="M4 7h16" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M6 7l1 14h10l1-14" />
+    <path d="M9 7V4h6v3" />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+  >
+    <path d="m5 12 4 4 10-10" />
+  </svg>
+)
+
 const FieldLabel = ({ children, required = false }) => (
   <label className="mb-2 block text-xs text-brand-brown">
     {children}
@@ -79,13 +106,23 @@ const TextArea = ({ className = '', ...props }) => (
   />
 )
 
-const StepBlock = ({ step, index, onChange }) => (
+const StepBlock = ({ step, index, onChange, onRemove, canRemove }) => (
   <div className="space-y-4">
     <div className="flex items-end gap-3">
       <p className="shrink-0 italic text-brand-tamarillo">
         Etape {index + 1}
       </p>
       <div className="mb-1 h-px flex-1 bg-[#df9c92]" />
+      {canRemove ? (
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="mb-[-0.15rem] flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-tamarillo transition hover:bg-brand-peach/40"
+          aria-label={`Supprimer l'étape ${index + 1}`}
+        >
+          <TrashIcon />
+        </button>
+      ) : null}
     </div>
 
     <div>
@@ -160,6 +197,7 @@ const CoachProgramForm = ({
   const navigate = useNavigate()
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [categoryOpen, setCategoryOpen] = useState(false)
 
   const handleImageChange = async (event) => {
     const file = event.target.files?.[0]
@@ -196,6 +234,12 @@ const CoachProgramForm = ({
     setSteps((current) => [...current, { ...initialProgramStep }])
   }
 
+  const removeStep = (index) => {
+    setSteps((current) =>
+      current.length > 1 ? current.filter((_, stepIndex) => stepIndex !== index) : current
+    )
+  }
+
   return (
     <form onSubmit={onSubmit}>
       <button
@@ -212,7 +256,7 @@ const CoachProgramForm = ({
       </h1>
 
       <section className="mb-8">
-        <h2 className="mb-5 text-xl font-normal text-brand-brown">
+        <h2 className="mb-5 text-xl font-light text-brand-brown">
           Paramètre de la séance
         </h2>
 
@@ -274,30 +318,55 @@ const CoachProgramForm = ({
           <FieldLabel required>Catégorie de la séance</FieldLabel>
 
           <div className="relative">
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="h-[43px] w-full appearance-none rounded-md border border-brand-brown/35 bg-transparent px-4 pr-12 text-sm text-brand-brown outline-none focus:border-brand-tamarillo"
-              required
+            <button
+              type="button"
+              onClick={() => setCategoryOpen((open) => !open)}
+              className={`flex h-[43px] w-full items-center justify-between rounded-md border px-4 text-left text-sm outline-none transition ${
+                categoryOpen
+                  ? 'border-brand-tamarillo text-brand-brown'
+                  : 'border-brand-brown/35 text-brand-brown'
+              }`}
             >
-              <option value="">Sélectionner une catégorie</option>
-              {form.category && !categoryOptions.includes(form.category) ? (
-                <option value={form.category}>{form.category}</option>
-              ) : null}
-              {categoryOptions.map((option) => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
+              <span className={form.category ? 'truncate' : 'truncate text-brand-brown/35'}>
+                {form.category || 'Sélectionner une catégorie'}
+              </span>
+              <span className={`shrink-0 text-brand-brown/60 transition-transform ${categoryOpen ? '' : 'rotate-180'}`}>
+                <SelectArrow />
+              </span>
+            </button>
 
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-brand-brown/60">
-              <SelectArrow />
-            </span>
+            {categoryOpen ? (
+              <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-56 overflow-y-auto rounded-md border border-brand-tamarillo/35 bg-brand-beige p-2 shadow-float">
+                {categoryOptions.map((option) => {
+                  const selected = option === form.category
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, category: option })
+                        setCategoryOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm transition ${
+                        selected
+                          ? 'bg-brand-tamarillo text-brand-beige'
+                          : 'text-brand-brown hover:bg-brand-peach/40'
+                      }`}
+                    >
+                      <span className="truncate">{option}</span>
+                      {selected ? <span className="ml-3 shrink-0"><CheckIcon /></span> : null}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-5 text-xl font-normal text-brand-brown">
+        <h2 className="mb-5 text-xl font-light text-brand-brown">
           Description de la séance
         </h2>
 
@@ -308,6 +377,8 @@ const CoachProgramForm = ({
               step={step}
               index={index}
               onChange={updateStep}
+              onRemove={removeStep}
+              canRemove={steps.length > 1}
             />
           ))}
         </div>
@@ -321,8 +392,8 @@ const CoachProgramForm = ({
         </button>
       </section>
 
-      <section className="mb-4">
-        <h2 className="mb-5 text-xl font-normal text-brand-brown">
+      <section className="mb-0">
+        <h2 className="mb-5 text-xl font-light text-brand-brown">
           Les conseils
         </h2>
 
@@ -337,14 +408,14 @@ const CoachProgramForm = ({
         </div>
       </section>
 
-      <CoachBottomAction sticky>
+      <div className="pt-8">
         <button
           type="submit"
           className={coachPrimaryActionClass}
         >
           {submitLabel}
         </button>
-      </CoachBottomAction>
+      </div>
     </form>
   )
 }

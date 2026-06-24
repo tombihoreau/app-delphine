@@ -33,7 +33,7 @@ const HorizontalScrollRow = ({ children, className = '' }) => {
       onMouseLeave={stopDrag}
       onMouseUp={stopDrag}
       onMouseMove={moveDrag}
-      className={`-mx-5 flex cursor-grab select-none gap-3 overflow-x-auto px-5 pb-3 ${className}`}
+      className={`no-scrollbar -mx-5 flex cursor-grab select-none gap-3 overflow-x-auto px-5 ${className}`}
     >
       {children}
     </div>

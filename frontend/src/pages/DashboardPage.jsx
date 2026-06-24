@@ -33,6 +33,28 @@ const ClockIcon = () => (
   </svg>
 );
 
+const CategoryTag = ({ children }) => {
+  if (!children) return null;
+
+  return (
+    <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
+      <span className="h-1.5 w-1.5 rounded-full bg-brand-tamarillo" />
+      {children}
+    </span>
+  );
+};
+
+const EmptySessionState = () => (
+  <div className="text-brand-brown">
+    <h3 className="font-display text-xl font-normal text-brand-tamarillo">
+      Pas de séance prévue !
+    </h3>
+    <p className="mt-3 text-sm leading-5">
+      Profite de cette journée pour te reposer et récupérer des forces !
+    </p>
+  </div>
+);
+
 const formatShortDate = (value) => {
   const [year, month, day] = value.split("-");
   return `${day}/${month}/${year.slice(-2)}`;
@@ -84,9 +106,9 @@ const SessionCard = ({ assignment, compact = false, featured = false, onOpen }) 
         </span>
       ) : null}
 
-      <div className={featured ? "flex items-end justify-between gap-5" : "flex items-start justify-between gap-3"}>
-        <div className="min-w-0">
-          <h3 className={`${featured ? "text-xl" : "truncate text-lg"} font-medium text-brand-tamarillo`}>
+      <div className={featured ? "flex flex-col gap-4" : "relative pr-8"}>
+        <div>
+          <h3 className={`${featured ? "text-xl" : "text-lg"} font-light leading-tight text-brand-tamarillo`}>
             {assignment.program_name}
           </h3>
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
@@ -95,20 +117,23 @@ const SessionCard = ({ assignment, compact = false, featured = false, onOpen }) 
               {assignment.session_minutes || 35} min
             </span>
           </div>
-          <span className="mt-3 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
-            {assignment.program_category}
-          </span>
         </div>
 
         {featured ? (
-          <span className="mb-1 inline-flex shrink-0 items-center gap-2 text-base text-brand-tamarillo">
-            Voir la séance
-            <Chevron direction="right" />
-          </span>
+          <div className="flex items-center justify-between gap-3">
+            <CategoryTag>{assignment.program_category}</CategoryTag>
+            <span className="inline-flex items-center gap-2 text-base text-brand-tamarillo">
+              Voir la séance
+              <Chevron direction="right" />
+            </span>
+          </div>
         ) : (
-          <span className="mt-2 shrink-0 text-brand-tamarillo">
-            <Chevron direction="right" />
-          </span>
+          <>
+            <CategoryTag>{assignment.program_category}</CategoryTag>
+            <span className="absolute right-0 top-1 text-brand-tamarillo">
+              <Chevron direction="right" />
+            </span>
+          </>
         )}
       </div>
     </button>
@@ -168,6 +193,7 @@ const DashboardPage = () => {
   const weekLabel = formatWeekLabel(data?.weekRange);
   const firstName = data?.user?.first_name || data?.user?.name || "Adeline";
   const todayCheckin = data?.todayCheckin;
+  const todayMood = todayCheckin?.mood || 5;
 
   const selectDay = (dayKey) => {
     const assignments = data?.weekAssignments || [];
@@ -196,7 +222,7 @@ const DashboardPage = () => {
           </p>
         </header>
 
-        <section className="mb-8">
+        <section className="mb-12">
           <div className="mb-4 flex items-center justify-between text-brand-tamarillo">
             <button
               type="button"
@@ -206,7 +232,7 @@ const DashboardPage = () => {
               <Chevron direction="left" />
             </button>
             <div className="text-center">
-              <h2 className="text-xl font-medium text-brand-brown">
+              <h2 className="text-xl font-light text-brand-brown">
                 Ma semaine
               </h2>
               <p className="mt-1 text-xs italic text-brand-brown">
@@ -250,18 +276,22 @@ const DashboardPage = () => {
             })}
           </div>
 
-          {selectedAssignment ? (
-            <SessionCard
-              assignment={selectedAssignment}
-              featured
-              onOpen={() => navigate(`/sessions/${selectedAssignment.id}`)}
-            />
+          {data ? (
+            selectedAssignment ? (
+              <SessionCard
+                assignment={selectedAssignment}
+                featured
+                onOpen={() => navigate(`/sessions/${selectedAssignment.id}`)}
+              />
+            ) : (
+              <EmptySessionState />
+            )
           ) : null}
         </section>
 
         <section className="relative mb-9 rounded-md bg-brand-peach/35 p-5">
           <div className="w-2/3">
-            <h2 className="font-display text-xl font-normal text-brand-tamarillo">
+            <h2 className="text-xl font-light text-brand-tamarillo">
               Humeur du jour
             </h2>
             <p className="mt-2 text-sm leading-5 text-brand-brown">
@@ -269,19 +299,18 @@ const DashboardPage = () => {
               comment tu te sens.
             </p>
           </div>
-          <MoodSmiley value={5} alt="" className="absolute -right-[2%] -top-[10%] h-24 w-24" />
+          <MoodSmiley value={todayMood} alt="" className="absolute -right-[2%] -top-[10%] h-24 w-24" />
           <button
             type="button"
-            onClick={() => navigate("/mood")}
-            disabled={Boolean(todayCheckin)}
-            className="mt-4 w-full rounded-md bg-brand-tamarillo px-5 py-3 text-sm font-semibold text-brand-beige disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => navigate("/mood", { state: { mood: todayMood, checkin: todayCheckin || null } })}
+            className="mt-4 w-full rounded-md bg-brand-tamarillo px-5 py-3 text-sm font-semibold text-brand-beige"
           >
-            {todayCheckin ? "Mood ajouté aujourd'hui" : "Ajouter mon mood"}
+            {todayCheckin ? "Modifier mon mood" : "Ajouter mon mood"}
           </button>
         </section>
 
         <section>
-          <h2 className="mb-4 text-xl font-medium text-brand-brown">
+          <h2 className="mb-4 text-xl font-light text-brand-brown">
             Mes prochaines séances
           </h2>
           <HorizontalScrollRow>

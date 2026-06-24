@@ -99,6 +99,7 @@ const initDatabase = async () => {
       age INTEGER,
       weight REAL,
       phone TEXT,
+      offer_type TEXT,
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -157,6 +158,11 @@ const initDatabase = async () => {
       completed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(assignment_id, user_id)
     );
+  `);
+
+  await query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS offer_type TEXT
   `);
 
   await query(`

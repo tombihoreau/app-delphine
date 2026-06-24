@@ -102,7 +102,7 @@ const ClientAgendaPage = () => {
           >
             <Chevron direction="left" />
           </button>
-          <h2 className="text-xl font-medium capitalize text-brand-brown">{getMonthLabel(currentMonth)}</h2>
+          <h2 className="text-xl font-light capitalize text-brand-brown">{getMonthLabel(currentMonth)}</h2>
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
@@ -155,7 +155,7 @@ const ClientAgendaPage = () => {
                   className="flex w-full items-start justify-between gap-3 text-left"
                 >
                   <div>
-                    <h3 className="text-lg font-medium text-brand-tamarillo">{assignment.program_name}</h3>
+                    <h3 className="text-lg font-light text-brand-tamarillo">{assignment.program_name}</h3>
 	                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
 	                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
 	                    </div>

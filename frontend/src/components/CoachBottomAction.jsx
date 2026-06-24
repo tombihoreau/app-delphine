@@ -4,7 +4,7 @@ const CoachBottomAction = ({ children, sticky = false }) => (
   <div
     className={
       sticky
-        ? 'sticky bottom-0 z-40 -mx-5 mt-12 bg-brand-beige px-5 pb-6 pt-3'
+        ? 'sticky bottom-0 z-40 -mx-5 mt-8 bg-brand-beige px-5 pb-3 pt-2'
         : 'mt-auto pt-12'
     }
   >

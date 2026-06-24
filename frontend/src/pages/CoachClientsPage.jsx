@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
 import api from '../services/api'
 
@@ -41,6 +41,21 @@ const CalendarIcon = () => (
   </svg>
 )
 
+const GiftIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  >
+    <path d="M4 10h16v10H4z" />
+    <path d="M12 10v10M4 14h16" />
+    <path d="M12 10H8.5a2.5 2.5 0 1 1 2.2-3.7L12 10Z" />
+    <path d="M12 10h3.5a2.5 2.5 0 1 0-2.2-3.7L12 10Z" />
+  </svg>
+)
+
 const formatJoinDate = (createdAt) => {
   if (!createdAt) return ''
 
@@ -58,13 +73,39 @@ const getClientPhone = (client) => {
 
 const CoachClientsPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [clients, setClients] = useState([])
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(location.state?.success || '')
 
   useEffect(() => {
     loadClients()
   }, [])
+
+  useEffect(() => {
+    const storedSuccess = window.sessionStorage.getItem('coachClientsSuccess')
+    const nextSuccess = location.state?.success || storedSuccess
+
+    if (!nextSuccess) return
+
+    setSuccess(nextSuccess)
+    window.sessionStorage.removeItem('coachClientsSuccess')
+
+    if (location.state?.success) {
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.pathname, location.state, navigate])
+
+  useEffect(() => {
+    if (!success) return undefined
+
+    const timeout = window.setTimeout(() => {
+      setSuccess('')
+    }, 3000)
+
+    return () => window.clearTimeout(timeout)
+  }, [success])
 
   const filteredClients = useMemo(() => {
     if (!query.trim()) return clients
@@ -96,6 +137,12 @@ const CoachClientsPage = () => {
       {error && (
         <p className="mb-4 rounded-md border border-brand-tamarillo bg-brand-peach/30 px-4 py-3 text-sm text-brand-tamarillo">
           {error}
+        </p>
+      )}
+
+      {success && (
+        <p className="mb-4 rounded-md border border-[#4cae68] bg-[#e8f7ea] px-4 py-3 text-sm text-[#34824a]">
+          {success}
         </p>
       )}
 
@@ -135,7 +182,7 @@ const CoachClientsPage = () => {
               onClick={() => navigate(`/admin/clients/${client.id}`)}
               className="cursor-pointer rounded-lg bg-brand-peach/60 px-4 py-4 text-brand-tamarillo transition hover:bg-brand-peach"
             >
-              <h2 className="text-lg font-normal text-brand-brown">
+              <h2 className="text-lg font-light text-brand-brown">
                 {client.name}
                 {client.age ? ` ${client.age} ans` : ''}
               </h2>
@@ -146,6 +193,10 @@ const CoachClientsPage = () => {
               </p>
 
               <div className="mt-2 space-y-1 text-sm text-brand-tamarillo">
+                <p className="flex items-center gap-1.5">
+                  <GiftIcon />
+                  {client.offer_type || 'Type d’offre'}
+                </p>
                 {joinDate ? (
                   <p className="flex items-center gap-1.5">
                     <CalendarIcon />

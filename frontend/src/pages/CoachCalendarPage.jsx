@@ -129,7 +129,7 @@ const ClientAgendaBlock = ({ clientGroup, expanded, onToggle, onViewProgram }) =
           {firstAssignment.checkin_mood ? (
             <MoodSmiley value={firstAssignment.checkin_mood} className="h-10 w-10 shrink-0" />
           ) : null}
-          <span className="truncate text-xl font-normal text-brand-brown">
+          <span className="truncate text-xl font-light text-brand-brown">
             {clientGroup.userName}
           </span>
         </span>
@@ -174,7 +174,7 @@ const ClientAgendaBlock = ({ clientGroup, expanded, onToggle, onViewProgram }) =
               <div key={assignment.id} className="rounded-md bg-brand-peach/55 p-4 text-brand-tamarillo">
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-normal">{assignment.program_name}</h3>
+                    <h3 className="text-lg font-light">{assignment.program_name}</h3>
 	                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
 	                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
 	                    </div>
@@ -307,7 +307,7 @@ const CoachCalendarPage = () => {
         >
           <Chevron direction="left" />
         </button>
-        <h2 className="text-xl font-medium capitalize text-brand-brown">{getMonthLabel(currentMonth)}</h2>
+        <h2 className="text-xl font-light capitalize text-brand-brown">{getMonthLabel(currentMonth)}</h2>
         <button
           type="button"
           onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
