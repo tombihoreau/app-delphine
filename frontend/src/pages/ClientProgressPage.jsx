@@ -181,6 +181,7 @@ const ClientProgressPage = () => {
   const moodWeekLabel = formatWeekLabel(moodData?.weekRange)
   const energyWeekLabel = formatWeekLabel(energyData?.weekRange)
   const sleepWeekLabel = formatWeekLabel(sleepData?.weekRange)
+  const todayKey = formatDateKey(new Date())
 
   useEffect(() => {
     if (!summaryData || selectedDailyState !== undefined) return
@@ -232,8 +233,9 @@ const ClientProgressPage = () => {
 
             <div className="mb-5 grid grid-cols-7 gap-2">
               {weekDays.map((day) => {
-                const disabled = !day.hasCheckin
-                const selected = day.key === selectedDate && !disabled
+                const isToday = day.key === todayKey
+                const disabled = !day.hasCheckin && !isToday
+                const selected = day.key === selectedDate
                 return (
                   <button
                     key={day.key}
@@ -311,10 +313,12 @@ const ClientProgressPage = () => {
                       {featuredSession.program_category}
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#6bbd7d] bg-[#e6f5e7] px-3 py-1 text-xs text-[#3d8a4c]">
-                    <CheckIcon />
-                    Réalisé
-                  </span>
+                  {featuredSession.feedback_id ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#6bbd7d] bg-[#e6f5e7] px-3 py-1 text-xs text-[#3d8a4c]">
+                      <CheckIcon />
+                      Réalisé
+                    </span>
+                  ) : null}
                 </div>
               </article>
             ) : null}

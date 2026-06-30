@@ -1,18 +1,28 @@
 # Sport Coach App
 
-Application mobile-first de coaching sportif avec espace coach et espace client.
+Application web mobile-first pour le suivi sportif entre une coach et ses clientes.
 
-Le projet est compose de deux applications :
+L'application propose deux espaces :
 
-- `backend/` : API Express, authentification JWT et base PostgreSQL.
-- `frontend/` : application React + Vite + Tailwind, avec support Capacitor.
+- un espace coach pour créer des programmes, les attribuer, suivre les clientes et consulter leur agenda ;
+- un espace cliente pour voir ses séances, renseigner son humeur quotidienne et envoyer son ressenti après une séance.
 
-## Prerequis
+## Stack technique
+
+- Front-end : React, Vite, Tailwind CSS
+- Back-end : Node.js, Express
+- Base de données : PostgreSQL
+- Authentification : JWT
+- Mobile : Capacitor
+- Développement local : Docker Compose pour PostgreSQL et Adminer
+
+## Prérequis
 
 - Node.js `20.20.2`
 - npm
-- Docker Desktop pour lancer PostgreSQL en local facilement
-- nvm recommande
+- Docker Desktop
+
+Le projet contient un fichier `.nvmrc`, donc avec `nvm` :
 
 ```bash
 nvm install
@@ -31,9 +41,21 @@ cd ../frontend && npm install
 
 ## Configuration
 
-Les fichiers `.env` ne sont pas versionnes.
+Les fichiers `.env` ne sont pas versionnés.
 
-Backend, dans `backend/.env` :
+Créer le fichier backend :
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Créer le fichier frontend :
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+Configuration locale par défaut :
 
 ```env
 PORT=3002
@@ -45,56 +67,61 @@ PGUSER=postgres
 PGPASSWORD=sportcoach
 ```
 
-En production, il est plus simple d'utiliser une URL fournie par l'hebergeur :
-
-```env
-DATABASE_URL=postgres://user:password@host:5432/database
-DATABASE_SSL=true
-JWT_SECRET=une-cle-longue-et-secrete
-```
-
-Frontend, dans `frontend/.env` :
-
-```env
-VITE_API_URL=http://localhost:3002
-```
-
-Si aucune variable n'est definie, le backend ecoute sur `3001`. En local dans ce projet, on utilise plutot `3002`, comme dans les fichiers `.env`.
+En production, utiliser une clé JWT longue et unique, et une configuration PostgreSQL adaptée à l'hébergement.
 
 ## Lancement en local
 
-Lancer backend et frontend ensemble :
+Démarrer PostgreSQL et Adminer :
 
 ```bash
 npm run db:up
+```
+
+Démarrer le back-end et le front-end :
+
+```bash
 npm run dev
 ```
 
-Ou separement :
+URLs locales :
 
-```bash
-npm run dev:backend
-npm run dev:frontend
+- Front-end : `http://localhost:5180`
+- API : `http://localhost:3002`
+- Adminer : `http://localhost:8081`
+
+Identifiants Adminer en local :
+
+```text
+Système : PostgreSQL
+Serveur : postgres
+Utilisateur : postgres
+Mot de passe : sportcoach
+Base de données : sport_coach_app
 ```
 
-URLs par defaut :
+## Compte coach de démonstration
 
-- Frontend : `http://localhost:5180`
-- Backend : `http://localhost:3002`
+Au premier démarrage, le back-end initialise les tables et ajoute un compte coach si nécessaire :
+
+```text
+Email : admin@sportcoach.com
+Mot de passe : admin123
+```
 
 ## Scripts utiles
 
-Racine :
+Depuis la racine :
 
 ```bash
-npm run db:up
 npm run dev
 npm run dev:backend
 npm run dev:frontend
+npm run db:up
 npm run db:down
+npm run db:migrate:sqlite
 ```
 
-Frontend :
+Front-end :
 
 ```bash
 cd frontend
@@ -103,7 +130,7 @@ npm run build
 npm run preview
 ```
 
-Backend :
+Back-end :
 
 ```bash
 cd backend
@@ -111,78 +138,71 @@ npm run dev
 npm start
 ```
 
-## Base de donnees
+## Base de données
 
-Le backend utilise PostgreSQL. En local, le plus simple est de lancer la base avec Docker :
+Le projet utilise PostgreSQL.
 
-```bash
-npm run db:up
-```
+En local, Docker Compose lance :
 
-Cette commande demarre un conteneur PostgreSQL avec :
+- PostgreSQL sur le port `5432`
+- Adminer sur le port `8081`
 
-```text
-Base: sport_coach_app
-User: postgres
-Password: sportcoach
-Port: 5432
-```
-
-Elle demarre aussi Adminer pour consulter la base visuellement :
-
-```text
-URL: http://localhost:8081
-Systeme: PostgreSQL
-Serveur: postgres
-Utilisateur: postgres
-Mot de passe: sportcoach
-Base: sport_coach_app
-```
-
-Pour recopier l'ancienne base SQLite locale vers PostgreSQL :
+L'ancienne base SQLite n'est plus utilisée par l'application. Le script suivant sert uniquement à récupérer d'anciennes données locales :
 
 ```bash
 npm run db:migrate:sqlite
 ```
 
-Attention : cette commande remplace les donnees actuellement presentes dans PostgreSQL par celles de `backend/coaching.db`.
+Attention : cette commande remplace les données présentes dans PostgreSQL par celles de `backend/coaching.db`.
 
-Si tu utilises une installation PostgreSQL locale sans Docker, cree la base manuellement :
+## Fonctionnalités principales
 
-```sql
-CREATE DATABASE sport_coach_app;
-```
+Espace coach :
 
-Au premier demarrage, les tables, des donnees de demo et un compte coach sont crees si necessaire.
+- gestion des clientes ;
+- création, modification, duplication et suppression de programmes ;
+- attribution d'une séance à une ou plusieurs clientes ;
+- agenda coach ;
+- consultation du détail d'une cliente et de son historique.
 
-L'ancienne base SQLite locale `backend/coaching.db` n'est plus utilisee. Si tu as besoin de recuperer des donnees dedans, il faudra lancer un script de migration dedie avant de la supprimer.
+Espace cliente :
 
-## Compte coach par defaut
+- première connexion par e-mail puis création du mot de passe ;
+- consultation des séances ;
+- humeur quotidienne ;
+- suivi fatigue, stress et sommeil ;
+- validation de séance et ressenti après effort.
+
+## Structure du projet
 
 ```text
-Email: admin@sportcoach.com
-Mot de passe: admin123
+.
+├── backend/
+│   ├── scripts/
+│   └── src/
+│       ├── controllers/
+│       ├── db/
+│       ├── middlewares/
+│       ├── routes/
+│       └── index.js
+├── frontend/
+│   ├── public/
+│   └── src/
+│       ├── assets/
+│       ├── components/
+│       ├── data/
+│       ├── pages/
+│       ├── services/
+│       ├── store/
+│       └── styles/
+├── docker-compose.yml
+├── package.json
+└── README.md
 ```
 
-## Parcours utilisateur
+## Build mobile
 
-Coach :
-
-- Gestion des programmes
-- Creation et duplication de seances
-- Attribution de programmes aux clients
-- Gestion des clients
-- Consultation du suivi client
-
-Client :
-
-- Connexion par adresse e-mail
-- Creation du mot de passe a la premiere connexion
-- Agenda des seances
-- Suivi humeur, fatigue, sommeil et stress
-- Retour apres seance
-
-## Build mobile avec Capacitor
+Le front-end peut être empaqueté avec Capacitor.
 
 Android :
 
@@ -204,36 +224,23 @@ npx cap sync
 npx cap open ios
 ```
 
-Les dossiers natifs generes sont ignores par Git dans ce projet.
+Les dossiers natifs générés sont ignorés par Git.
 
-## Structure
+## Déploiement prévu
 
-```text
-.
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── db/
-│   │   ├── middlewares/
-│   │   ├── routes/
-│   │   └── index.js
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── store/
-│   │   └── styles/
-│   └── package.json
-├── package.json
-└── README.md
-```
+L'application est prévue pour être déployée sur un VPS OVH :
 
-## Notes de developpement
+- Nginx sert le front-end React compilé ;
+- l'API Node.js tourne sur le serveur ;
+- PostgreSQL est hébergé sur le VPS ;
+- le domaine OVH pointe vers le VPS ;
+- HTTPS est géré côté Nginx.
 
-- Les dependances, builds, fichiers `.env` et bases locales sont ignores par Git.
-- Le frontend utilise `VITE_API_URL` pour joindre l'API.
-- Le backend expose toutes les routes sous `/api`.
-- Les assets visuels de l'application sont dans `frontend/src/assets`.
+## Notes de sécurité
+
+Ne jamais versionner :
+
+- les fichiers `.env` ;
+- les bases locales `.db`, `.sqlite`, `.sqlite3` ;
+- les fichiers uploadés par les utilisateurs ;
+- les dossiers générés comme `node_modules`, `dist`, `android` et `ios`.

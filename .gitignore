@@ -20,7 +20,8 @@ backend/dist/
 *.db-*
 *.sqlite
 *.sqlite3
-backend/uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
 uploads/
 
 # Logs
@@ -56,4 +57,3 @@ ios/
 # Test artifacts
 playwright-report/
 test-results/
-

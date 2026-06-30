@@ -19,6 +19,7 @@ router.post('/admin/users', authMiddleware, adminMiddleware, authController.crea
 router.get('/admin/users', authMiddleware, adminMiddleware, userController.getAllUsers);
 router.get('/admin/users/:id', authMiddleware, adminMiddleware, userController.getAdminUserDetail);
 router.put('/admin/users/:id', authMiddleware, adminMiddleware, userController.updateAdminUser);
+router.delete('/admin/users/:id', authMiddleware, adminMiddleware, userController.deleteAdminUser);
 router.get('/admin/programs', authMiddleware, adminMiddleware, programController.getAdminPrograms);
 router.get('/admin/programs/:id', authMiddleware, adminMiddleware, programController.getAdminProgramDetail);
 router.post('/admin/programs', authMiddleware, adminMiddleware, programController.createProgram);

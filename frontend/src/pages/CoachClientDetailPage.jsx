@@ -59,6 +59,8 @@ const CoachClientDetailPage = () => {
   const [energyWeekStart, setEnergyWeekStart] = useState(() => getWeekStart())
   const [sleepWeekStart, setSleepWeekStart] = useState(() => getWeekStart())
   const [error, setError] = useState('')
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     loadDetail()
@@ -70,6 +72,22 @@ const CoachClientDetailPage = () => {
       setDetail(response.data)
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors du chargement du client')
+    }
+  }
+
+  const handleDeleteClient = async () => {
+    setDeleting(true)
+    setError('')
+
+    try {
+      await api.delete(`/api/admin/users/${id}`)
+      window.sessionStorage.setItem('coachClientsSuccess', 'Compte client supprimé')
+      navigate('/admin/clients')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de la suppression du client')
+      setDeleteOpen(false)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -124,6 +142,13 @@ const CoachClientDetailPage = () => {
                     {detail.user.offer_type || 'Type d’offre'}
                   </p>
                   <p className="text-xs text-brand-tamarillo">Depuis {formatJoinDate(detail.user.created_at)}</p>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteOpen(true)}
+                    className="mt-1 text-xs text-danger underline underline-offset-4"
+                  >
+                    Supprimer le compte
+                  </button>
                 </div>
               </div>
               <button
@@ -234,6 +259,38 @@ const CoachClientDetailPage = () => {
               )}
             </HorizontalScrollRow>
           </section>
+
+          {deleteOpen ? (
+            <div className="fixed inset-0 z-[60] flex items-end bg-black/35">
+              <div className="w-full rounded-t-[28px] bg-brand-beige px-6 pb-10 pt-8 text-center shadow-float">
+                <div className="mx-auto max-w-md">
+                  <h2 className="text-2xl font-light text-brand-tamarillo">
+                    Supprimer ce compte ?
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-[320px] text-sm leading-5 text-brand-brown">
+                    Le compte de "{detail.user.name}" et toutes ses données seront supprimés définitivement.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteClient}
+                    disabled={deleting}
+                    className="mt-8 w-full rounded-md bg-brand-tamarillo px-5 py-4 text-base font-bold text-brand-beige disabled:opacity-60"
+                  >
+                    {deleting ? 'Suppression...' : 'Supprimer'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteOpen(false)}
+                    disabled={deleting}
+                    className="mt-4 w-full rounded-md border border-brand-tamarillo px-5 py-4 text-base font-bold text-brand-tamarillo disabled:opacity-60"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </>
       )}
     </CoachLayout>

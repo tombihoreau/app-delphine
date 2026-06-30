@@ -201,4 +201,22 @@ const updateAdminUser = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAdminUserDetail, updateAdminUser };
+const deleteAdminUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const existingUser = await db.get('SELECT id FROM users WHERE id = ? AND role = ?', id, 'user');
+    if (!existingUser) {
+      return res.status(404).json({ error: 'Client non trouvé' });
+    }
+
+    await db.run('DELETE FROM users WHERE id = ? AND role = ?', id, 'user');
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+module.exports = { getAllUsers, getAdminUserDetail, updateAdminUser, deleteAdminUser };

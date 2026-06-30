@@ -5,6 +5,7 @@ import useAuthStore from "../store/useAuthStore";
 import MoodSmiley from "../components/MoodSmiley";
 import SunIcon from "../components/SunIcon";
 import HorizontalScrollRow from "../components/HorizontalScrollRow";
+import { getDailyMotivation } from "../data/dailyMotivations";
 
 const weekLabels = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"];
 
@@ -194,6 +195,8 @@ const DashboardPage = () => {
   const firstName = data?.user?.first_name || data?.user?.name || "Adeline";
   const todayCheckin = data?.todayCheckin;
   const todayMood = todayCheckin?.mood || 5;
+  const todayKey = formatDateKey(new Date());
+  const dailyMotivation = getDailyMotivation(todayKey, data?.user?.id || user?.id || firstName);
 
   const selectDay = (dayKey) => {
     const assignments = data?.weekAssignments || [];
@@ -218,7 +221,7 @@ const DashboardPage = () => {
             Bonjour, {firstName} !
           </h1>
           <p className="ml-10 mt-1 max-w-[240px] text-sm italic leading-5 text-brand-brown">
-            Aujourd'hui est une bonne journée pour prendre soin de toi.
+            {dailyMotivation}
           </p>
         </header>
 

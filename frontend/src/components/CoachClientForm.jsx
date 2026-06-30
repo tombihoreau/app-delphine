@@ -38,7 +38,7 @@ const CoachClientForm = ({ title, form, setForm, error, onSubmit, submitLabel = 
     <CoachLayout title="" compactBottom>
       {error && <p className="status-banner bg-[#fdeaea] text-danger">{error}</p>}
 
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="pb-28">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -161,10 +161,12 @@ const CoachClientForm = ({ title, form, setForm, error, onSubmit, submitLabel = 
           </div>
         </div>
 
-        <div className="pt-8">
-          <button type="submit" className={coachPrimaryActionClass}>
-            {submitLabel}
-          </button>
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+          <div className="mx-auto w-full max-w-[624px]">
+            <button type="submit" className={coachPrimaryActionClass}>
+              {submitLabel}
+            </button>
+          </div>
         </div>
       </form>
     </CoachLayout>
