@@ -118,7 +118,6 @@ npm run dev:backend
 npm run dev:frontend
 npm run db:up
 npm run db:down
-npm run db:migrate:sqlite
 ```
 
 Front-end :
@@ -146,14 +145,6 @@ En local, Docker Compose lance :
 
 - PostgreSQL sur le port `5432`
 - Adminer sur le port `8081`
-
-L'ancienne base SQLite n'est plus utilisée par l'application. Le script suivant sert uniquement à récupérer d'anciennes données locales :
-
-```bash
-npm run db:migrate:sqlite
-```
-
-Attention : cette commande remplace les données présentes dans PostgreSQL par celles de `backend/coaching.db`.
 
 ## Fonctionnalités principales
 
@@ -226,21 +217,11 @@ npx cap open ios
 
 Les dossiers natifs générés sont ignorés par Git.
 
-## Déploiement prévu
-
-L'application est prévue pour être déployée sur un VPS OVH :
-
-- Nginx sert le front-end React compilé ;
-- l'API Node.js tourne sur le serveur ;
-- PostgreSQL est hébergé sur le VPS ;
-- le domaine OVH pointe vers le VPS ;
-- HTTPS est géré côté Nginx.
-
 ## Notes de sécurité
 
 Ne jamais versionner :
 
 - les fichiers `.env` ;
-- les bases locales `.db`, `.sqlite`, `.sqlite3` ;
+- les exports ou sauvegardes locales de base de données ;
 - les fichiers uploadés par les utilisateurs ;
 - les dossiers générés comme `node_modules`, `dist`, `android` et `ios`.

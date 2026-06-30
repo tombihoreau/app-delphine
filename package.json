@@ -7,7 +7,6 @@
   "scripts": {
     "db:up": "docker compose up -d postgres adminer",
     "db:down": "docker compose down",
-    "db:migrate:sqlite": "cd backend && node scripts/migrate-sqlite-to-postgres.js",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev"
