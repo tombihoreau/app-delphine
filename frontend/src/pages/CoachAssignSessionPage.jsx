@@ -2,17 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
 import CoachBottomAction, { coachPrimaryActionClass } from '../components/CoachBottomAction'
+import CoachSelect from '../components/CoachSelect'
 import api from '../services/api'
 
 const ArrowLeft = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="m15 18-6-6 6-6" />
-  </svg>
-)
-
-const SelectArrow = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="m6 15 6-6 6 6" />
   </svg>
 )
 
@@ -62,6 +57,11 @@ const CoachAssignSessionPage = () => {
     e.preventDefault()
     setError('')
 
+    if (!form.program_id) {
+      setError('Sélectionnez une séance à attribuer')
+      return
+    }
+
     if (form.scheduled_date < getTodayKey()) {
       setError("La date d'attribution ne peut pas être passée")
       return
@@ -101,22 +101,14 @@ const CoachAssignSessionPage = () => {
         <div className="space-y-4">
           <div>
             <FieldLabel>Séances déjà créées</FieldLabel>
-            <div className="relative">
-              <select
-                value={form.program_id}
-                onChange={(e) => setForm({ ...form, program_id: e.target.value })}
-                className={`${fieldClass} appearance-none pr-12`}
-                required
-              >
-                <option value="">Programme Course</option>
-                {programs.map((program) => (
-                  <option key={program.id} value={program.id}>{program.name}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-brand-brown/60">
-                <SelectArrow />
-              </span>
-            </div>
+            <CoachSelect
+              value={form.program_id}
+              onChange={(programId) => setForm({ ...form, program_id: String(programId) })}
+              options={programs}
+              placeholder="Sélectionner une séance"
+              getOptionLabel={(program) => program.name}
+              getOptionValue={(program) => program.id}
+            />
           </div>
 
           <div>

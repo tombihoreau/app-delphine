@@ -2,17 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
 import CoachBottomAction, { coachPrimaryActionClass } from '../components/CoachBottomAction'
+import CoachSelect from '../components/CoachSelect'
 import api from '../services/api'
 
 const BackIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="m15 18-6-6 6-6" />
-  </svg>
-)
-
-const SelectArrow = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="m6 15 6-6 6 6" />
   </svg>
 )
 
@@ -22,12 +17,6 @@ const TrashIcon = () => (
     <path d="M10 11v6M14 11v6" />
     <path d="M6 7l1 14h10l1-14" />
     <path d="M9 7V4h6v3" />
-  </svg>
-)
-
-const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
-    <path d="m5 12 4 4 10-10" />
   </svg>
 )
 
@@ -58,9 +47,7 @@ const AssignmentBlock = ({
   clients,
   onChange,
   onRemove,
-  canRemove,
-  open,
-  onToggle
+  canRemove
 }) => (
   <div className="space-y-4">
     <div className="flex items-end gap-3">
@@ -82,51 +69,14 @@ const AssignmentBlock = ({
 
     <div>
       <FieldLabel>Attribuer à ...</FieldLabel>
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => onToggle(index)}
-          className={`flex h-[43px] w-full items-center justify-between rounded-md border px-4 text-left text-sm outline-none transition ${
-            open
-              ? 'border-brand-tamarillo text-brand-brown'
-              : 'border-brand-brown/35 text-brand-brown'
-          }`}
-        >
-          <span className={assignment.client_id ? 'truncate' : 'truncate text-brand-brown/35'}>
-            {clients.find((client) => String(client.id) === String(assignment.client_id))?.name || 'Sélectionner une cliente'}
-          </span>
-          <span className={`shrink-0 text-brand-brown/60 transition-transform ${open ? '' : 'rotate-180'}`}>
-            <SelectArrow />
-          </span>
-        </button>
-
-        {open ? (
-          <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-56 overflow-y-auto rounded-md border border-brand-tamarillo/35 bg-brand-beige p-2 shadow-float">
-            {clients.map((client) => {
-              const selected = String(client.id) === String(assignment.client_id)
-
-              return (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => {
-                    onChange(index, 'client_id', String(client.id))
-                    onToggle(null)
-                  }}
-                  className={`flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm transition ${
-                    selected
-                      ? 'bg-brand-tamarillo text-brand-beige'
-                      : 'text-brand-brown hover:bg-brand-peach/40'
-                  }`}
-                >
-                  <span className="truncate">{client.name}</span>
-                  {selected ? <span className="ml-3 shrink-0"><CheckIcon /></span> : null}
-                </button>
-              )
-            })}
-          </div>
-        ) : null}
-      </div>
+      <CoachSelect
+        value={assignment.client_id}
+        onChange={(clientId) => onChange(index, 'client_id', String(clientId))}
+        options={clients}
+        placeholder="Sélectionner une cliente"
+        getOptionLabel={(client) => client.name}
+        getOptionValue={(client) => client.id}
+      />
     </div>
 
     <div>
@@ -149,7 +99,6 @@ const CoachProgramAssignPage = () => {
   const [programs, setPrograms] = useState([])
   const [clients, setClients] = useState([])
   const [assignments, setAssignments] = useState([{ ...initialAssignment }])
-  const [openClientIndex, setOpenClientIndex] = useState(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -185,7 +134,6 @@ const CoachProgramAssignPage = () => {
 
   const addAssignment = () => {
     setAssignments((current) => [...current, { ...initialAssignment }])
-    setOpenClientIndex(assignments.length)
   }
 
   const removeAssignment = (index) => {
@@ -194,11 +142,6 @@ const CoachProgramAssignPage = () => {
         ? current.filter((_, assignmentIndex) => assignmentIndex !== index)
         : current
     )
-    setOpenClientIndex(null)
-  }
-
-  const toggleClientList = (index) => {
-    setOpenClientIndex((current) => (current === index ? null : index))
   }
 
   const handleSubmit = async (e) => {
@@ -277,8 +220,6 @@ const CoachProgramAssignPage = () => {
               onChange={updateAssignment}
               onRemove={removeAssignment}
               canRemove={assignments.length > 1}
-              open={openClientIndex === index}
-              onToggle={toggleClientList}
             />
           ))}
         </div>

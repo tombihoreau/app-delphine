@@ -104,7 +104,7 @@ Base de données : sport_coach_app
 Au premier démarrage, le back-end initialise les tables et ajoute un compte coach si nécessaire :
 
 ```text
-Email : admin@sportcoach.com
+Email : admin@admin.com
 Mot de passe : admin123
 ```
 

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../services/api'
 import { coachPrimaryActionClass } from './CoachBottomAction'
+import CoachSelect from './CoachSelect'
 
 export const initialProgramStep = {
   name: '',
@@ -46,18 +47,6 @@ const ImageIcon = () => (
   </svg>
 )
 
-const SelectArrow = () => (
-  <svg
-    viewBox="0 0 24 24"
-    className="h-5 w-5"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-  >
-    <path d="m6 15 6-6 6 6" />
-  </svg>
-)
-
 const TrashIcon = () => (
   <svg
     viewBox="0 0 24 24"
@@ -70,18 +59,6 @@ const TrashIcon = () => (
     <path d="M10 11v6M14 11v6" />
     <path d="M6 7l1 14h10l1-14" />
     <path d="M9 7V4h6v3" />
-  </svg>
-)
-
-const CheckIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.2"
-  >
-    <path d="m5 12 4 4 10-10" />
   </svg>
 )
 
@@ -197,7 +174,6 @@ const CoachProgramForm = ({
   const navigate = useNavigate()
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadError, setUploadError] = useState('')
-  const [categoryOpen, setCategoryOpen] = useState(false)
 
   const handleImageChange = async (event) => {
     const file = event.target.files?.[0]
@@ -316,52 +292,12 @@ const CoachProgramForm = ({
 
         <div>
           <FieldLabel required>Catégorie de la séance</FieldLabel>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setCategoryOpen((open) => !open)}
-              className={`flex h-[43px] w-full items-center justify-between rounded-md border px-4 text-left text-sm outline-none transition ${
-                categoryOpen
-                  ? 'border-brand-tamarillo text-brand-brown'
-                  : 'border-brand-brown/35 text-brand-brown'
-              }`}
-            >
-              <span className={form.category ? 'truncate' : 'truncate text-brand-brown/35'}>
-                {form.category || 'Sélectionner une catégorie'}
-              </span>
-              <span className={`shrink-0 text-brand-brown/60 transition-transform ${categoryOpen ? '' : 'rotate-180'}`}>
-                <SelectArrow />
-              </span>
-            </button>
-
-            {categoryOpen ? (
-              <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-56 overflow-y-auto rounded-md border border-brand-tamarillo/35 bg-brand-beige p-2 shadow-float">
-                {categoryOptions.map((option) => {
-                  const selected = option === form.category
-
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => {
-                        setForm({ ...form, category: option })
-                        setCategoryOpen(false)
-                      }}
-                      className={`flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm transition ${
-                        selected
-                          ? 'bg-brand-tamarillo text-brand-beige'
-                          : 'text-brand-brown hover:bg-brand-peach/40'
-                      }`}
-                    >
-                      <span className="truncate">{option}</span>
-                      {selected ? <span className="ml-3 shrink-0"><CheckIcon /></span> : null}
-                    </button>
-                  )
-                })}
-              </div>
-            ) : null}
-          </div>
+          <CoachSelect
+            value={form.category}
+            onChange={(category) => setForm({ ...form, category })}
+            options={categoryOptions}
+            placeholder="Sélectionner une catégorie"
+          />
         </div>
       </section>
 
