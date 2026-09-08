@@ -1,6 +1,7 @@
 import MoodSmiley from './MoodSmiley'
 import SunIcon from './SunIcon'
 import BackButton from './BackButton'
+import { formatSessionVolume, formatStepVolume } from '../utils/volume'
 
 const ClockIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -88,7 +89,7 @@ const SessionHeader = ({ assignment, completed }) => (
     <h1 className="font-display text-3xl font-normal leading-tight text-brand-tamarillo">{assignment.program_name}</h1>
     <div className="mt-3 flex flex-wrap gap-3 text-sm text-brand-tamarillo">
       <span className="inline-flex items-center gap-1"><CalendarIcon />{formatPrettyDate(assignment.scheduled_date)}</span>
-      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
+      <span className="inline-flex items-center gap-1"><ClockIcon />{formatSessionVolume(assignment) || '35 Min'}</span>
     </div>
     <div className="mt-3 flex flex-wrap gap-2">
       {assignment.program_category ? (
@@ -120,7 +121,9 @@ const ProgramContent = ({ assignment, steps }) => (
             <article key={step.id || step.name}>
               <div className="mb-2 flex items-end justify-between gap-4 border-b border-brand-tamarillo/35 pb-1 text-brand-tamarillo">
                 <h3 className="text-base italic">{step.name}</h3>
-                {step.duration ? <span className="shrink-0 text-sm">• {step.duration} min</span> : null}
+                {formatStepVolume(step) ? (
+                  <span className="shrink-0 text-sm">• {formatStepVolume(step)}</span>
+                ) : null}
               </div>
               {step.description ? (
                 <p className="text-base leading-6 text-brand-brown">{step.description}</p>
@@ -169,7 +172,7 @@ const FeedbackCard = ({ assignment }) => {
         <div className="py-3">
           <p>Douleurs</p>
           <p className="mt-1 text-xs leading-4 text-brand-brown/80">
-            {assignment.feedback_pain_notes || 'Aucune douleur ajoutée'}
+            {assignment.feedback_pain_notes || 'Aucune douleur signalée'}
           </p>
         </div>
         <div className="py-3">

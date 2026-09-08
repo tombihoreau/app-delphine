@@ -6,6 +6,7 @@ import SunIcon from '../components/SunIcon'
 import HorizontalScrollRow from '../components/HorizontalScrollRow'
 import SessionHistoryCard from '../components/SessionHistoryCard'
 import WeeklyMetricChart, { addDays, buildWeekRange, filterWeekData, getWeekStart } from '../components/WeeklyMetricChart'
+import { formatSessionVolume } from '../utils/volume'
 
 const EditIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -172,7 +173,7 @@ const CoachClientDetailPage = () => {
                   <article key={assignment.id} className="min-w-[78%] rounded-md border border-brand-tamarillo/70 p-3 text-brand-tamarillo">
                     <h3 className="truncate text-sm font-light">{assignment.program_name}</h3>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
+                      <span className="inline-flex items-center gap-1"><ClockIcon />{formatSessionVolume(assignment) || '35 Min'}</span>
                       {assignment.program_category ? <span>{assignment.program_category}</span> : null}
                     </div>
                     <div className="mt-2 flex items-center justify-between gap-2">

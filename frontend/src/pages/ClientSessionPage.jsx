@@ -151,7 +151,8 @@ const ClientSessionPage = () => {
     return detail?.steps?.length
       ? detail.steps.map((step) => ({
           ...step,
-          duration: step.duration_minutes || 0
+          volume_value: step.volume_value ?? step.duration_minutes ?? 0,
+          volume_unit: step.volume_unit || 'minutes'
         }))
       : []
   }, [assignment, detail])

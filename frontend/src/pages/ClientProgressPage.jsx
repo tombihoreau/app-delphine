@@ -4,6 +4,7 @@ import api from '../services/api'
 import MoodSmiley from '../components/MoodSmiley'
 import SunIcon from '../components/SunIcon'
 import WeeklyMetricChart from '../components/WeeklyMetricChart'
+import { formatSessionVolume } from '../utils/volume'
 
 const weekLabels = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
 
@@ -307,7 +308,7 @@ const ClientProgressPage = () => {
                     <h3 className="text-base font-light">{featuredSession.program_name}</h3>
                     <div className="mt-1 flex items-center gap-1 text-xs text-brand-tamarillo">
                       <ClockIcon />
-                      <span>{featuredSession.session_minutes || 35} min</span>
+                      <span>{formatSessionVolume(featuredSession) || '35 Min'}</span>
                     </div>
                     <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo bg-brand-beige px-3 py-1 text-xs text-brand-tamarillo">
                       {featuredSession.program_category}

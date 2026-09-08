@@ -52,7 +52,7 @@ const AssignmentBlock = ({
   <div className="space-y-4">
     <div className="flex items-end gap-3">
       <p className="shrink-0 italic text-brand-tamarillo">
-        Cliente {index + 1}
+        Client {index + 1}
       </p>
       <div className="mb-1 h-px flex-1 bg-[#df9c92]" />
       {canRemove ? (
@@ -60,7 +60,7 @@ const AssignmentBlock = ({
           type="button"
           onClick={() => onRemove(index)}
           className="mb-[-0.15rem] flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-tamarillo transition hover:bg-brand-peach/40"
-          aria-label={`Supprimer la cliente ${index + 1}`}
+          aria-label={`Supprimer le client ${index + 1}`}
         >
           <TrashIcon />
         </button>
@@ -73,7 +73,7 @@ const AssignmentBlock = ({
         value={assignment.client_id}
         onChange={(clientId) => onChange(index, 'client_id', String(clientId))}
         options={clients}
-        placeholder="Sélectionner une cliente"
+        placeholder="Sélectionner un client"
         getOptionLabel={(client) => client.name}
         getOptionValue={(client) => client.id}
       />
@@ -153,7 +153,7 @@ const CoachProgramAssignPage = () => {
     )
 
     if (completedAssignments.length !== assignments.length) {
-      setError('Sélectionnez une cliente et une date pour chaque attribution')
+      setError('Sélectionnez un client et une date pour chaque attribution')
       return
     }
 
@@ -229,7 +229,7 @@ const CoachProgramAssignPage = () => {
           onClick={addAssignment}
           className="mt-6 w-full rounded-md bg-brand-tamarillo px-5 py-3 text-sm font-semibold text-brand-beige"
         >
-          Ajouter une cliente
+          Ajouter un client
         </button>
 
         <CoachBottomAction>

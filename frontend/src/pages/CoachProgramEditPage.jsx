@@ -28,6 +28,8 @@ const CoachProgramEditPage = () => {
       setForm({
         name: program.name || '',
         session_minutes: String(program.session_minutes || ''),
+        session_volume_value: String(program.session_volume_value ?? program.session_minutes ?? ''),
+        session_volume_unit: program.session_volume_unit || 'minutes',
         description: program.description || '',
         coach_notes: program.coach_notes || '',
         banner_image: program.banner_image || '',
@@ -38,7 +40,8 @@ const CoachProgramEditPage = () => {
         programSteps.length
           ? programSteps.map((step) => ({
               name: step.name || '',
-              duration: step.duration_minutes ? String(step.duration_minutes) : '',
+              volume_value: String(step.volume_value ?? step.duration_minutes ?? ''),
+              volume_unit: step.volume_unit || 'minutes',
               description: step.description || ''
             }))
           : [{ ...initialProgramStep }]

@@ -71,7 +71,7 @@ const CoachClientEditPage = () => {
 
   return (
     <CoachClientForm
-      title={`Modifier les informations de ${clientName || 'la cliente'}`}
+      title={`Modifier les informations de ${clientName || 'ce client'}`}
       form={form}
       setForm={setForm}
       error={error}

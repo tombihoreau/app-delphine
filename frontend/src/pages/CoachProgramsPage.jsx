@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import CoachLayout from "../components/CoachLayout";
 import api from "../services/api";
+import { formatSessionVolume } from "../utils/volume";
 
 const ChevronIcon = ({ open = false }) => (
   <svg
@@ -294,8 +295,8 @@ const CoachProgramsPage = () => {
 	                    <dt className="font-semibold text-[#3b0825]">Type</dt>
 	                    <dd>{program.category}</dd>
 
-	                    <dt className="font-semibold text-[#3b0825]">Durée</dt>
-	                    <dd>{program.session_minutes || 35} min</dd>
+	                    <dt className="font-semibold text-[#3b0825]">Volume</dt>
+	                    <dd>{formatSessionVolume(program) || "35 Min"}</dd>
 	                  </dl>
 
                   <div className="mt-7 grid grid-cols-[90px_1fr] items-center">

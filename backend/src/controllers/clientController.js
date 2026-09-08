@@ -92,6 +92,8 @@ const getHomepage = async (req, res) => {
             p.name as program_name,
             p.category as program_category,
             p.session_minutes,
+            p.session_volume_value,
+            p.session_volume_unit,
             af.id as feedback_id
           FROM program_assignments pa
           JOIN programs p ON p.id = pa.program_id
@@ -110,6 +112,8 @@ const getHomepage = async (req, res) => {
             p.name as program_name,
             p.category as program_category,
             p.session_minutes,
+            p.session_volume_value,
+            p.session_volume_unit,
             af.id as feedback_id
           FROM program_assignments pa
           JOIN programs p ON p.id = pa.program_id
@@ -132,6 +136,8 @@ const getHomepage = async (req, res) => {
             p.name as program_name,
             p.category as program_category,
             p.session_minutes,
+            p.session_volume_value,
+            p.session_volume_unit,
             af.id as feedback_id
           FROM program_assignments pa
           JOIN programs p ON p.id = pa.program_id
@@ -200,7 +206,9 @@ const getCalendar = async (req, res) => {
           pa.*,
           p.name as program_name,
           p.category as program_category,
-          p.session_minutes
+          p.session_minutes,
+          p.session_volume_value,
+          p.session_volume_unit
         FROM program_assignments pa
         JOIN programs p ON p.id = pa.program_id
         WHERE pa.user_id = ?
@@ -238,7 +246,9 @@ const getProgress = async (req, res) => {
             pa.*,
             p.name as program_name,
             p.category as program_category,
-            p.session_minutes
+            p.session_minutes,
+            p.session_volume_value,
+            p.session_volume_unit
           FROM program_assignments pa
           JOIN programs p ON p.id = pa.program_id
           WHERE pa.user_id = ? AND pa.scheduled_date >= ? AND pa.scheduled_date <= ?
@@ -266,6 +276,8 @@ const getProgress = async (req, res) => {
             p.name as program_name,
             p.category as program_category,
             p.session_minutes,
+            p.session_volume_value,
+            p.session_volume_unit,
             af.difficulty,
             af.pain_notes,
             af.comments,
@@ -330,6 +342,8 @@ const getSession = async (req, res) => {
           p.name as program_name,
           p.category as program_category,
           p.session_minutes,
+          p.session_volume_value,
+          p.session_volume_unit,
           p.banner_image,
           p.coach_notes,
           p.description as program_description,
@@ -375,7 +389,7 @@ const getSession = async (req, res) => {
 
     const steps = await db.all(
       `
-        SELECT id, name, duration_minutes, description
+        SELECT id, name, duration_minutes, volume_value, volume_unit, description
         FROM workouts
         WHERE program_id = ?
         ORDER BY week ASC, day ASC, id ASC
@@ -492,7 +506,7 @@ const completeSession = async (req, res) => {
   try {
     const assignment = await db.get(
       `
-        SELECT pa.*, p.session_minutes
+        SELECT pa.*, p.session_minutes, p.session_volume_value, p.session_volume_unit
         FROM program_assignments pa
         JOIN programs p ON p.id = pa.program_id
         WHERE pa.id = ? AND pa.user_id = ?

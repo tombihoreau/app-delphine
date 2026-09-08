@@ -109,6 +109,8 @@ const initDatabase = async () => {
       category TEXT NOT NULL,
       description TEXT,
       session_minutes INTEGER DEFAULT 20,
+      session_volume_value REAL,
+      session_volume_unit TEXT DEFAULT 'minutes',
       banner_image TEXT,
       coach_notes TEXT
     );
@@ -120,6 +122,8 @@ const initDatabase = async () => {
       day INTEGER NOT NULL,
       name TEXT NOT NULL,
       duration_minutes INTEGER DEFAULT 0,
+      volume_value REAL,
+      volume_unit TEXT DEFAULT 'minutes',
       description TEXT
     );
 
@@ -166,9 +170,38 @@ const initDatabase = async () => {
   `);
 
   await query(`
+    ALTER TABLE programs
+    ADD COLUMN IF NOT EXISTS session_volume_value REAL
+  `);
+
+  await query(`
+    ALTER TABLE programs
+    ADD COLUMN IF NOT EXISTS session_volume_unit TEXT DEFAULT 'minutes'
+  `);
+
+  await query(`
+    ALTER TABLE workouts
+    ADD COLUMN IF NOT EXISTS volume_value REAL
+  `);
+
+  await query(`
+    ALTER TABLE workouts
+    ADD COLUMN IF NOT EXISTS volume_unit TEXT DEFAULT 'minutes'
+  `);
+
+  await query(`
+    UPDATE workouts
+    SET
+      volume_value = COALESCE(volume_value, NULLIF(duration_minutes, 0)::REAL),
+      volume_unit = COALESCE(NULLIF(volume_unit, ''), 'minutes')
+  `);
+
+  await query(`
     UPDATE programs
     SET
       session_minutes = COALESCE(session_minutes, 20),
+      session_volume_value = COALESCE(session_volume_value, session_minutes::REAL),
+      session_volume_unit = COALESCE(NULLIF(session_volume_unit, ''), 'minutes'),
       category = COALESCE(NULLIF(category, ''), 'Course à pied'),
       coach_notes = COALESCE(coach_notes, '')
   `);

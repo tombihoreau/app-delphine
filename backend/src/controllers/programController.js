@@ -14,20 +14,54 @@ const deleteProgramImageIfUnused = async (imageUrl) => {
   }
 };
 
+const allowedVolumeUnits = new Set(['minutes', 'kilometers', 'repetitions']);
+
+const normalizeStepVolume = (step = {}) => {
+  const rawUnit = step.volume_unit || step.unit || 'minutes';
+  const volumeUnit = allowedVolumeUnits.has(rawUnit) ? rawUnit : 'minutes';
+  const rawValue = step.volume_value ?? step.volume ?? step.duration ?? step.duration_minutes;
+  const volumeValue = Number(rawValue) || 0;
+  const durationMinutes = volumeUnit === 'minutes' ? Math.round(volumeValue) : 0;
+
+  return {
+    volumeValue,
+    volumeUnit,
+    durationMinutes
+  };
+};
+
+const normalizeProgramVolume = ({ session_minutes, session_volume_value, session_volume_unit } = {}) => {
+  const rawUnit = session_volume_unit || 'minutes';
+  const volumeUnit = allowedVolumeUnits.has(rawUnit) ? rawUnit : 'minutes';
+  const rawValue = session_volume_value ?? session_minutes;
+  const volumeValue = Number(rawValue) || 0;
+  const sessionMinutes = volumeUnit === 'minutes' ? Math.round(volumeValue) : Number(session_minutes) || 0;
+
+  return {
+    volumeValue,
+    volumeUnit,
+    sessionMinutes
+  };
+};
+
 const insertProgramSteps = async (executor, programId, steps = []) => {
   const cleanedSteps = steps.filter((step) => step?.name?.trim());
 
   for (const [index, step] of cleanedSteps.entries()) {
+    const volume = normalizeStepVolume(step);
+
     await executor.run(
       `
-        INSERT INTO workouts (program_id, week, day, name, duration_minutes, description)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO workouts (program_id, week, day, name, duration_minutes, volume_value, volume_unit, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       programId,
       1,
       index + 1,
       step.name.trim(),
-      Number(step.duration ?? step.duration_minutes) || 0,
+      volume.durationMinutes,
+      volume.volumeValue,
+      volume.volumeUnit,
       step.description?.trim() || ''
     );
   }
@@ -77,7 +111,7 @@ const getAdminProgramDetail = async (req, res) => {
 
     const steps = await db.all(
       `
-        SELECT id, week, day, name, duration_minutes, description
+        SELECT id, week, day, name, duration_minutes, volume_value, volume_unit, description
         FROM workouts
         WHERE program_id = ?
         ORDER BY week ASC, day ASC, id ASC
@@ -119,27 +153,33 @@ const createProgram = async (req, res) => {
     category,
     description,
     session_minutes,
+    session_volume_value,
+    session_volume_unit,
     banner_image,
     coach_notes,
     steps = []
   } = req.body;
 
-  if (!name || !session_minutes || !category) {
-    return res.status(400).json({ error: 'Nom, durée et catégorie requis' });
+  const sessionVolume = normalizeProgramVolume({ session_minutes, session_volume_value, session_volume_unit });
+
+  if (!name || !sessionVolume.volumeValue || !category) {
+    return res.status(400).json({ error: 'Nom, volume et catégorie requis' });
   }
 
   try {
     const program = await db.transaction(async (tx) => {
       const created = await tx.get(
         `
-          INSERT INTO programs (name, category, description, session_minutes, banner_image, coach_notes)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO programs (name, category, description, session_minutes, session_volume_value, session_volume_unit, banner_image, coach_notes)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           RETURNING *
         `,
         name,
         category,
         description || '',
-        Number(session_minutes),
+        sessionVolume.sessionMinutes,
+        sessionVolume.volumeValue,
+        sessionVolume.volumeUnit,
         banner_image || '',
         coach_notes || ''
       );
@@ -162,13 +202,17 @@ const updateProgram = async (req, res) => {
     category,
     description,
     session_minutes,
+    session_volume_value,
+    session_volume_unit,
     banner_image,
     coach_notes,
     steps
   } = req.body;
 
-  if (!name || !session_minutes || !category) {
-    return res.status(400).json({ error: 'Nom, durée et catégorie requis' });
+  const sessionVolume = normalizeProgramVolume({ session_minutes, session_volume_value, session_volume_unit });
+
+  if (!name || !sessionVolume.volumeValue || !category) {
+    return res.status(400).json({ error: 'Nom, volume et catégorie requis' });
   }
 
   try {
@@ -181,13 +225,15 @@ const updateProgram = async (req, res) => {
       await tx.run(
         `
           UPDATE programs
-          SET name = ?, category = ?, description = ?, session_minutes = ?, banner_image = ?, coach_notes = ?
+          SET name = ?, category = ?, description = ?, session_minutes = ?, session_volume_value = ?, session_volume_unit = ?, banner_image = ?, coach_notes = ?
           WHERE id = ?
         `,
         name,
         category,
         description || '',
-        Number(session_minutes),
+        sessionVolume.sessionMinutes,
+        sessionVolume.volumeValue,
+        sessionVolume.volumeUnit,
         banner_image || '',
         coach_notes || '',
         id
@@ -222,14 +268,16 @@ const duplicateProgram = async (req, res) => {
 
       const duplicate = await tx.get(
         `
-          INSERT INTO programs (name, category, description, session_minutes, banner_image, coach_notes)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO programs (name, category, description, session_minutes, session_volume_value, session_volume_unit, banner_image, coach_notes)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           RETURNING *
         `,
         `${originalProgram.name} (copie)`,
         originalProgram.category,
         originalProgram.description || '',
-        originalProgram.session_minutes || 20,
+        originalProgram.session_minutes ?? 20,
+        originalProgram.session_volume_value ?? originalProgram.session_minutes ?? 20,
+        originalProgram.session_volume_unit || 'minutes',
         originalProgram.banner_image || '',
         originalProgram.coach_notes || ''
       );
@@ -247,14 +295,16 @@ const duplicateProgram = async (req, res) => {
       for (const workout of workouts) {
         await tx.run(
           `
-            INSERT INTO workouts (program_id, week, day, name, duration_minutes, description)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO workouts (program_id, week, day, name, duration_minutes, volume_value, volume_unit, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           `,
           duplicate.id,
           workout.week,
           workout.day,
           workout.name,
           workout.duration_minutes || 0,
+          workout.volume_value ?? workout.duration_minutes ?? 0,
+          workout.volume_unit || 'minutes',
           workout.description || ''
         );
       }
@@ -358,6 +408,8 @@ const getAdminAssignmentDetail = async (req, res) => {
           p.name as program_name,
           p.category as program_category,
           p.session_minutes,
+          p.session_volume_value,
+          p.session_volume_unit,
           p.banner_image,
           p.coach_notes,
           p.description as program_description,
@@ -406,7 +458,7 @@ const getAdminAssignmentDetail = async (req, res) => {
 
     const steps = await db.all(
       `
-        SELECT id, name, duration_minutes, description
+        SELECT id, name, duration_minutes, volume_value, volume_unit, description
         FROM workouts
         WHERE program_id = ?
         ORDER BY week ASC, day ASC, id ASC
@@ -430,6 +482,8 @@ const getAssignments = async (req, res) => {
         p.name as program_name,
         p.category as program_category,
         p.session_minutes,
+        p.session_volume_value,
+        p.session_volume_unit,
         u.name as user_name,
         u.email as user_email,
         u.age as user_age,

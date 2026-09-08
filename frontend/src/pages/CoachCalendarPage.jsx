@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import CoachLayout from '../components/CoachLayout'
 import api from '../services/api'
 import MoodSmiley from '../components/MoodSmiley'
+import { formatSessionVolume } from '../utils/volume'
 
 const weekLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sa', 'Di']
 
@@ -176,7 +177,7 @@ const ClientAgendaBlock = ({ clientGroup, expanded, onToggle, onViewProgram }) =
                   <div>
                     <h3 className="text-lg font-light">{assignment.program_name}</h3>
 	                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
-	                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
+	                      <span className="inline-flex items-center gap-1"><ClockIcon />{formatSessionVolume(assignment) || '35 Min'}</span>
 	                    </div>
 	                    <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
 	                      {assignment.program_category}
@@ -197,7 +198,7 @@ const ClientAgendaBlock = ({ clientGroup, expanded, onToggle, onViewProgram }) =
                 <div className="border-b border-brand-brown/10 py-2 text-sm">
                   <p className="text-[#b33727]">Douleurs</p>
                   <p className="mt-1 text-brand-brown/70">
-                    {assignment.feedback_pain_notes || 'Aucune douleur ajoutée'}
+                    {assignment.feedback_pain_notes || 'Aucune douleur signalée'}
                   </p>
                 </div>
 

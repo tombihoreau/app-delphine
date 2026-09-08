@@ -4,6 +4,7 @@ import CoachLayout from '../components/CoachLayout'
 import MoodSmiley from '../components/MoodSmiley'
 import SunIcon from '../components/SunIcon'
 import api from '../services/api'
+import { formatSessionVolume, formatStepVolume } from '../utils/volume'
 
 const ChevronLeft = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -104,7 +105,7 @@ const CoachProgramDetailPage = () => {
                 </span>
               ) : null}
               <span className="inline-flex items-center gap-1">
-                <ClockIcon />{program.session_minutes || 35} min
+                <ClockIcon />{formatSessionVolume(program) || '35 Min'}
               </span>
             </div>
 
@@ -133,9 +134,9 @@ const CoachProgramDetailPage = () => {
                   <article key={step.id} className="text-brand-brown">
                     <div className="mb-3 flex items-end justify-between gap-4 border-b border-brand-tamarillo/35 pb-1 text-brand-tamarillo">
                       <h3 className="text-lg font-light italic text-[#a53524]">{step.name}</h3>
-                      {step.duration_minutes ? (
+                      {formatStepVolume(step) ? (
                         <span className="shrink-0 text-base text-[#a53524]">
-                          • {step.duration_minutes} min
+                          • {formatStepVolume(step)}
                         </span>
                       ) : null}
                     </div>

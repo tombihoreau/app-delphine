@@ -90,7 +90,9 @@ const getAdminUserDetail = async (req, res) => {
         pa.*,
         p.name as program_name,
         p.category as program_category,
-        p.session_minutes
+        p.session_minutes,
+        p.session_volume_value,
+        p.session_volume_unit
       FROM program_assignments pa
       JOIN programs p ON p.id = pa.program_id
       WHERE pa.user_id = ? AND pa.scheduled_date >= ?
@@ -103,6 +105,8 @@ const getAdminUserDetail = async (req, res) => {
         p.name as program_name,
         p.category as program_category,
         p.session_minutes,
+        p.session_volume_value,
+        p.session_volume_unit,
         af.difficulty,
         af.pain_notes,
         af.comments,

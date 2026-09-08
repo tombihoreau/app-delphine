@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import SunIcon from '../components/SunIcon'
+import { formatSessionVolume } from '../utils/volume'
 
 const weekLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sa', 'Di']
 
@@ -157,7 +158,7 @@ const ClientAgendaPage = () => {
                   <div>
                     <h3 className="text-lg font-light text-brand-tamarillo">{assignment.program_name}</h3>
 	                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
-	                      <span className="inline-flex items-center gap-1"><ClockIcon />{assignment.session_minutes || 35} min</span>
+	                      <span className="inline-flex items-center gap-1"><ClockIcon />{formatSessionVolume(assignment) || '35 Min'}</span>
 	                    </div>
 	                    <span className="mt-2 inline-flex rounded-full border border-brand-tamarillo px-3 py-1 text-xs text-brand-tamarillo">
 	                      {assignment.program_category}

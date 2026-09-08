@@ -3,16 +3,20 @@ import { useState } from 'react'
 import api from '../services/api'
 import { coachPrimaryActionClass } from './CoachBottomAction'
 import CoachSelect from './CoachSelect'
+import { volumeUnitOptions } from '../utils/volume'
 
 export const initialProgramStep = {
   name: '',
-  duration: '',
+  volume_value: '',
+  volume_unit: 'minutes',
   description: ''
 }
 
 export const initialProgramForm = {
   name: '',
   session_minutes: '',
+  session_volume_value: '',
+  session_volume_unit: 'minutes',
   description: '',
   coach_notes: '',
   banner_image: '',
@@ -112,17 +116,28 @@ const StepBlock = ({ step, index, onChange, onRemove, canRemove }) => (
       />
     </div>
 
-    <div>
-      <FieldLabel>Durée de l'étape en minutes</FieldLabel>
-      <TextInput
-        type="number"
-        min="1"
-        step="1"
-        inputMode="numeric"
-        placeholder="Ex : 10"
-        value={step.duration}
-        onChange={(e) => onChange(index, 'duration', e.target.value)}
-      />
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(118px,0.65fr)] gap-4">
+      <div>
+        <FieldLabel>Nombre</FieldLabel>
+        <TextInput
+          type="number"
+          min="0"
+          step={step.volume_unit === 'kilometers' ? '0.1' : '1'}
+          inputMode="decimal"
+          placeholder="Ex : 10"
+          value={step.volume_value}
+          onChange={(e) => onChange(index, 'volume_value', e.target.value)}
+        />
+      </div>
+
+      <div>
+        <FieldLabel>Unité</FieldLabel>
+        <CoachSelect
+          value={step.volume_unit || 'minutes'}
+          onChange={(value) => onChange(index, 'volume_unit', value)}
+          options={volumeUnitOptions}
+        />
+      </div>
     </div>
 
     <div>
@@ -276,18 +291,37 @@ const CoachProgramForm = ({
           />
         </div>
 
-        <div className="mb-4">
-          <FieldLabel required>Durée de la séance en minutes</FieldLabel>
-          <TextInput
-            type="number"
-            min="1"
-            step="1"
-            inputMode="numeric"
-            placeholder="Ex : 35"
-            value={form.session_minutes}
-            onChange={(e) => setForm({ ...form, session_minutes: e.target.value })}
-            required
-          />
+        <div className="mb-4 grid grid-cols-[minmax(0,1fr)_minmax(118px,0.65fr)] gap-4">
+          <div>
+            <FieldLabel required>Nombre</FieldLabel>
+            <TextInput
+              type="number"
+              min="1"
+              step={form.session_volume_unit === 'kilometers' ? '0.1' : '1'}
+              inputMode="decimal"
+              placeholder="Ex : 35"
+              value={form.session_volume_value}
+              onChange={(e) => setForm({
+                ...form,
+                session_volume_value: e.target.value,
+                session_minutes: form.session_volume_unit === 'minutes' ? e.target.value : ''
+              })}
+              required
+            />
+          </div>
+
+          <div>
+            <FieldLabel required>Unité</FieldLabel>
+            <CoachSelect
+              value={form.session_volume_unit || 'minutes'}
+              onChange={(unit) => setForm({
+                ...form,
+                session_volume_unit: unit,
+                session_minutes: unit === 'minutes' ? form.session_volume_value : ''
+              })}
+              options={volumeUnitOptions}
+            />
+          </div>
         </div>
 
         <div>

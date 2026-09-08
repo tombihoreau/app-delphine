@@ -78,14 +78,14 @@ const ClientDailyStatePage = () => {
           <SliderQuestion
             title="Quel est ton niveau de fatigue ?"
             subtitle="Sélectionne ton niveau de fatigue actuel"
-            labels={['Energique', 'En forme', 'Moyen', 'Fatiguée', 'Très fatiguée']}
+            labels={['Énergie haute', 'En forme', 'Moyen', 'Fatigue', 'Forte fatigue']}
             value={energy}
             onChange={setEnergy}
           />
           <SliderQuestion
             title="Quel est ton niveau de stress ?"
             subtitle="Sélectionne ton niveau de stress actuel"
-            labels={['Sereine', 'Un peu stressée', 'Stressée', 'Très stressée', 'Débordée']}
+            labels={['Calme', 'Un peu', 'Stress moyen', 'Stress élevé', 'Débordement']}
             value={stress}
             onChange={setStress}
           />

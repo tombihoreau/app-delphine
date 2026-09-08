@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { formatSessionVolume } from '../utils/volume'
 
 const ClockIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -34,7 +35,7 @@ const SessionHistoryCard = ({ assignment, horizontal = false }) => {
         </span>
         <span className="inline-flex items-center gap-1">
           <ClockIcon />
-          {assignment.session_minutes || 35} min
+          {formatSessionVolume(assignment) || '35 Min'}
         </span>
         {assignment.program_category ? <span>{assignment.program_category}</span> : null}
       </div>

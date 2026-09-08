@@ -6,6 +6,7 @@ import MoodSmiley from "../components/MoodSmiley";
 import SunIcon from "../components/SunIcon";
 import HorizontalScrollRow from "../components/HorizontalScrollRow";
 import { getDailyMotivation } from "../data/dailyMotivations";
+import { formatSessionVolume } from "../utils/volume";
 
 const weekLabels = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"];
 
@@ -115,7 +116,7 @@ const SessionCard = ({ assignment, compact = false, featured = false, onOpen }) 
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-brown">
             <span className="inline-flex items-center gap-1">
               <ClockIcon />
-              {assignment.session_minutes || 35} min
+              {formatSessionVolume(assignment) || "35 Min"}
             </span>
           </div>
         </div>
